@@ -1,0 +1,193 @@
+// ============================================================
+// UAB ROMNESA - Šakočių valdymo sistemos DB schema
+// Paste into: https://dbdiagram.io/d
+//
+// Kiekviena lentelė atitinka vieną Excel lapą:
+//   ZALIAVOS : "Nustatymai", "1 Žaliavų gavimas", "2 Gamyba",
+//              "3 Sunaudojimas", "4 Receptūros", "5 Žaliavų perdavimai"
+//   PRODUKCIJA : "SĄRAŠAI", "FASAVIMO SANDĖLYS", "VIDINIS JUDĖJIMAS",
+//                "JUDĖJIMAS Į PARDUOTUVES"
+// Likučiai / suvestinės / paieška DB būtų SQL VIEW (nesaugoma).
+// ============================================================
+
+Project romnesa_sakociai {
+  database_type: 'PostgreSQL'
+  Note: 'Šakočių gamybos žaliavų FIFO atsekamumas + pagamintos produkcijos judėjimas (sandėliai, parduotuvės).'
+}
+
+// ------------------------------------------------------------
+// KLASIFIKATORIAI  (Excel: "Nustatymai" ir "SĄRAŠAI" lapai)
+// ------------------------------------------------------------
+
+Table users {
+  id            int [pk, increment]
+  username      varchar(50) [unique, not null]
+  password_hash varchar(255) [not null]
+  full_name     varchar(100) [not null]
+  role          varchar(30) [not null, note: 'admin | gamyba | fasavimas | vadovybe']
+  is_active     boolean [default: true]
+  created_at    timestamp [default: `now()`]
+  Note: 'Svetainės vartotojai ir jų rolės (Excel to neturi).'
+}
+
+Table raw_materials {
+  id             int [pk, increment]
+  name           varchar(100) [unique, not null, note: 'Miltai, Pienas, Kiaušiniai, Cukrus, Margarinas, Grietinė, Vanduo...']
+  unit           varchar(10) [not null, default: 'kg', note: 'viskas kg; kiaušiniai vnt x 0.06 kg']
+  requires_batch boolean [default: true, note: 'Vanduo = false (be partijos)']
+  is_active      boolean [default: true]
+  Note: 'Žaliavų klasifikatorius.'
+}
+
+Table production_products {
+  id        int [pk, increment]
+  name      varchar(100) [unique, not null]
+  is_active boolean [default: true]
+  Note: 'GAMYBINĖS rūšys - tik 3: Šakotis, Trapus šakotis, Sviestinis šakotis.'
+}
+
+Table packed_products {
+  id                    int [pk, increment]
+  name                  varchar(100) [unique, not null, note: 'pvz. "Trapus 0,5", "Šakotis 1kg dėžutėje", "Depo 1 kg"']
+  production_product_id int [ref: > production_products.id, note: 'kuri iš 3 gamybinių rūšių']
+  weight_from_kg        decimal(6,3) [note: 'Priedas A: svorio intervalas, pagal kurį parenkama rūšis']
+  weight_to_kg          decimal(6,3)
+  is_active             boolean [default: true]
+  Note: 'Galutinės fasavimo rūšys (SĄRAŠAI "Šakočių rūšys"). Svorio intervalas = Priedas A automatinis parinkimas.'
+}
+
+Table warehouses {
+  id         int [pk, increment]
+  name       varchar(100) [unique, not null, note: 'Fasavimo sandėlys, Gitanos sandėlys, Šaldiklis']
+  is_active  boolean [default: true]
+  Note: 'Parduotuvės paskaičiuojamos kaip "virtualus" sandėlis - atskiros lentelės nereikia.'
+}
+
+Table shops {
+  id        int [pk, increment]
+  name      varchar(100) [unique, not null, note: 'Palink, BLS, Aibe, Bim-Bam, Danalta, Rimi, Rivona, Lakaja, Andoma, Depo']
+  is_active boolean [default: true]
+  Note: 'Parduotuvių / klientų sąrašas.'
+}
+
+Table l_weeks {
+  id          int [pk, increment]
+  code        varchar(10) [unique, not null, note: 'pvz. L276, L386, L526']
+  week_number int [not null]
+  year        int [not null]
+  starts_on   date
+  ends_on     date
+  Note: 'L savaitė = pagaminto produkto partijos identifikatorius (atsekamumo raktas).'
+}
+
+// ------------------------------------------------------------
+// RECEPTŪROS  (Excel lapas "4 Receptūros" + versijavimas)
+// ------------------------------------------------------------
+
+Table recipes {
+  id                    int [pk, increment]
+  production_product_id int [ref: > production_products.id, not null]
+  version               int [not null, default: 1]
+  valid_from            date [not null]
+  valid_to              date [note: 'tušta = galioja dabar; "laikina kortelė" turi ir valid_to']
+  applies_to_l_week_id  int [ref: > l_weeks.id, note: 'tik jei receptūra skirta vienai L partijai']
+  change_reason         varchar(255)
+  approved_by_id        int [ref: > users.id, note: 'technologas tvirtina']
+  created_at            timestamp [default: `now()`]
+  Note: 'Kas, kada ir kodėl pakeitė normas. Excel saugo tik vieną versiją.'
+}
+
+Table recipe_items {
+  id              int [pk, increment]
+  recipe_id       int [ref: > recipes.id, not null]
+  raw_material_id int [ref: > raw_materials.id, not null]
+  qty_kg_per_kg   decimal(10,6) [not null, note: 'kg žaliavos / 1 kg produkto']
+  Note: 'Receptūros eilutė: žaliava + norma.'
+}
+
+// ------------------------------------------------------------
+// ŽALIAVŲ APSKAITA  (Excel lapai 1, 2, 3, 5)
+// ------------------------------------------------------------
+
+Table material_batches {
+  id              int [pk, increment]
+  received_date   date [not null, note: 'gavimo data - FIFO pagrindas']
+  raw_material_id int [ref: > raw_materials.id, not null]
+  batch_number    varchar(50) [unique, not null, note: 'Mil0630, P0701, K0713 - UNIKALU']
+  qty_received_kg decimal(12,3) [not null]
+  supplier        varchar(150)
+  invoice_number  varchar(50)
+  expiry_date     date [not null]
+  notes           varchar(255)
+  created_by_id   int [ref: > users.id]
+  created_at      timestamp [default: `now()`]
+  Note: 'Lapas "1 Žaliavų gavimas". Likutis = gauta - sunaudota - išrašyta (skaičiuojama VIEW).'
+}
+
+Table productions {
+  id                    int [pk, increment]
+  production_date       date [not null]
+  production_product_id int [ref: > production_products.id, not null]
+  qty_produced_kg       decimal(12,3) [not null]
+  l_week_id             int [ref: > l_weeks.id, not null]
+  recipe_id             int [ref: > recipes.id, note: 'kuri receptūros versija naudota']
+  employee_id           int [ref: > users.id]
+  notes                 varchar(255)
+  created_at            timestamp [default: `now()`]
+  Note: 'Lapas "2 Gamyba". Data + rūšis + kiekis + L savaitė.'
+}
+
+Table material_usage {
+  id                int [pk, increment]
+  production_id     int [ref: > productions.id, not null]
+  raw_material_id   int [ref: > raw_materials.id, not null]
+  material_batch_id int [ref: > material_batches.id, note: 'NULL = trūksta partijos (TRŪKSTA statusas)']
+  qty_kg            decimal(12,3) [not null]
+  Note: 'Lapas "3 Sunaudojimas". FIFO paskirstymas: viena eilutė per žaliavą x partiją. Jei norma imama iš 2-3 partijų - kelios eilutės.'
+}
+
+Table material_outflows {
+  id                int [pk, increment]
+  outflow_date      date [not null]
+  material_batch_id int [ref: > material_batches.id, not null]
+  qty_kg            decimal(12,3) [not null]
+  outflow_type      varchar(20) [not null, note: 'transfer (kiti cechai) | writeoff (nurašymas: expired/spoiled/inv_diff)']
+  destination       varchar(150) [note: 'cechas arba priežastis']
+  document_number   varchar(50)
+  notes             varchar(255)
+  created_by_id     int [ref: > users.id]
+  created_at        timestamp [default: `now()`]
+  Note: 'Lapas "5 Žaliavų perdavimai" + nurašymai vienoje lentelėje. Perduota/nurašyta dalis gamybai nebeprieinama.'
+}
+
+// ------------------------------------------------------------
+// PAGAMINTOS PRODUKCIJOS JUDĖJIMAS
+// (Excel lapai "FASAVIMO SANDĖLYS" + "VIDINIS JUDĖJIMAS" +
+//  "JUDĖJIMAS Į PARDUOTUVES" -> VIENA lentelė)
+// ------------------------------------------------------------
+
+Table product_movements {
+  id                int [pk, increment]
+  movement_date     date [not null]
+  movement_type     varchar(20) [not null, note: 'pack_in (fasavimo papildymas) | move (tarp sandėlių) | ship_out (į parduotuvę)']
+  l_week_id         int [ref: > l_weeks.id, not null]
+  packed_product_id int [ref: > packed_products.id, not null]
+  qty_units         int [not null]
+  qty_kg            decimal(12,3) [not null]
+  warehouse_from_id int [ref: > warehouses.id, note: 'NULL kai pack_in (įvedama gamybą)']
+  warehouse_to_id   int [ref: > warehouses.id, note: 'NULL kai ship_out']
+  shop_id           int [ref: > shops.id, note: 'tik ship_out']
+  document_number   varchar(50) [note: 'vidinis dokumentas arba važtaraštis (KR006118563)']
+  notes             varchar(255)
+  created_by_id     int [ref: > users.id]
+  created_at        timestamp [default: `now()`]
+  Note: 'Vienas "judėjimų žurnalas". Likutis sandėlyje = pack_in+move(in) - move(out) - ship_out.'
+}
+
+// ------------------------------------------------------------
+// Ko NEREIKIA kaip lentelių (Excel lapai -> SQL VIEW):
+//   "6 Partijų likučiai"   = per-batch balansas + dienų iki galiojimo
+//   "7 ATSEKAMUMO PAIEŠKA" = L savaitė -> žaliavų partijos (ir atgal)
+//   "8 Suvestinė"          = vadovo dashboard KPI
+//   "SUVESTINĖ" / "VIDINĖ SUVESTINĖ" = išvežimai ir likučiai pagal sandėlį
+// ============================================================

@@ -1,0 +1,26 @@
+%% UAB ROMNESA - Šakočių atsekamumo sistemos ER diagrama (supaprastinta)
+%% Paste into: https://mermaid.live  (veikia ir GitHub / Notion markdown)
+erDiagram
+    RAW_MATERIALS ||--o{ MATERIAL_BATCHES : "gavimas partijomis"
+    RAW_MATERIALS ||--o{ RECIPE_ITEMS : "žaliava receptūroje"
+    RECIPES ||--o{ RECIPE_ITEMS : "normos"
+    PRODUCTION_PRODUCTS ||--o{ RECIPES : "receptūrų versijos"
+
+    MATERIAL_BATCHES ||--o{ MATERIAL_USAGE : "FIFO sunaudojimas"
+    MATERIAL_BATCHES ||--o{ MATERIAL_OUTFLOWS : "perdavimai / nurašymai"
+    PRODUCTIONS ||--o{ MATERIAL_USAGE : "kas sunaudota"
+
+    PRODUCTION_PRODUCTS ||--o{ PRODUCTIONS : "gamyba"
+    RECIPES ||--o{ PRODUCTIONS : "naudota versija"
+    L_WEEKS ||--o{ PRODUCTIONS : "L partija"
+
+    PRODUCTION_PRODUCTS ||--o{ PACKED_PRODUCTS : "fasuojama į"
+    PACKED_PRODUCTS ||--o{ PRODUCT_MOVEMENTS : "judėjimas"
+    L_WEEKS ||--o{ PRODUCT_MOVEMENTS : "L partija"
+    WAREHOUSES ||--o{ PRODUCT_MOVEMENTS : "iš / į sandėlį"
+    SHOPS ||--o{ PRODUCT_MOVEMENTS : "pristatyta parduotuvei"
+
+    USERS ||--o{ MATERIAL_BATCHES : "įveda"
+    USERS ||--o{ PRODUCTIONS : "registruoja"
+    USERS ||--o{ PRODUCT_MOVEMENTS : "registruoja"
+    USERS ||--o{ RECIPES : "tvirtina"
