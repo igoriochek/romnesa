@@ -1,3 +1,4 @@
 .idea/
 backend/database/*.sqlite*
+backend/public/app/
 *.log
