@@ -37,6 +37,11 @@ class OutflowController extends Controller
         ]);
 
         $batch = MaterialBatch::findOrFail($data['material_batch_id']);
+
+        if ($batch->is_locked) {
+            return response()->json(['message' => 'Partija įspajamota (užrakinta) – perdavimas draudžiamas.'], 423);
+        }
+
         $balance = $this->stock->batchBalance($batch);
 
         if ($data['qty_kg'] > $balance) {
@@ -52,5 +57,24 @@ class OutflowController extends Controller
             MaterialOutflow::create($data)->load('materialBatch.rawMaterial'),
             201
         );
+    }
+
+    /** Įspajamojimas: užrakintas įrašas nebenaikinamas. */
+    public function lock(int $id)
+    {
+        $outflow = MaterialOutflow::findOrFail($id);
+        $outflow->update(['is_locked' => ! $outflow->is_locked]);
+        $outflow->logAudit($outflow->is_locked ? 'locked' : 'unlocked');
+        return $outflow;
+    }
+
+    public function destroy(int $id)
+    {
+        $outflow = MaterialOutflow::findOrFail($id);
+        if ($outflow->is_locked) {
+            return response()->json(['message' => 'Įrašas įspajamotas (užrakintas) – naikinti negalima.'], 423);
+        }
+        $outflow->delete();
+        return response()->noContent();
     }
 }

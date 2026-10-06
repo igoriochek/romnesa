@@ -30,6 +30,20 @@ class MaterialStockService
      */
     public function allocateFifo(int $rawMaterialId, float $qtyKg, ?string $notExpiredAfter = null): array
     {
+        return array_map(
+            fn ($a) => ['batch_id' => $a['batch']?->id, 'qty_kg' => $a['qty_kg']],
+            $this->plan($rawMaterialId, $qtyKg, $notExpiredAfter)
+        );
+    }
+
+    /**
+     * Tas pats FIFO planas, bet su partijos detalėmis - gamybos peržiūrai
+     * („iš kokios partijos nurašoma" prieš registruojant gamybą).
+     *
+     * @return array<int, array{batch: MaterialBatch|null, qty_kg: float, available_kg: float}>
+     */
+    public function plan(int $rawMaterialId, float $qtyKg, ?string $notExpiredAfter = null): array
+    {
         $batches = MaterialBatch::where('raw_material_id', $rawMaterialId)
             ->when($notExpiredAfter, fn ($q) => $q->where('expiry_date', '>=', $notExpiredAfter))
             ->orderBy('expiry_date')
@@ -49,12 +63,16 @@ class MaterialStockService
                 continue;
             }
             $take = min($available, $remaining);
-            $allocations[] = ['batch_id' => $batch->id, 'qty_kg' => round($take, 3)];
+            $allocations[] = [
+                'batch'        => $batch,
+                'qty_kg'       => round($take, 3),
+                'available_kg' => round($available, 3),
+            ];
             $remaining = round($remaining - $take, 3);
         }
 
         if ($remaining > 0) {
-            $allocations[] = ['batch_id' => null, 'qty_kg' => $remaining];
+            $allocations[] = ['batch' => null, 'qty_kg' => $remaining, 'available_kg' => 0.0];
         }
 
         return $allocations;

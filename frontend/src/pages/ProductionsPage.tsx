@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  createProduction, getLWeeks, getProductionProducts, getProductions, errText,
-  type LWeek, type Production, type ProductionProduct,
+  createProduction, deleteRecord, getLWeeks, getProductionProducts, getProductions,
+  getProduction, previewProduction, toggleLock, errText,
+  type LWeek, type Production, type ProductionPreview, type ProductionProduct,
 } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
 
@@ -11,6 +12,9 @@ export default function ProductionsPage() {
   const [lweeks, setLweeks] = useState<LWeek[]>([])
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [detail, setDetail] = useState<Production | null>(null)
+  const [preview, setPreview] = useState<ProductionPreview | null>(null)
   const [f, setF] = useState({
     production_date: new Date().toISOString().slice(0, 10),
     production_product_id: '', qty_produced_kg: '', l_week_id: '', notes: '',
@@ -23,6 +27,23 @@ export default function ProductionsPage() {
     getProductionProducts().then((r) => setProducts(r.data.data))
     getLWeeks().then((r) => setLweeks(r.data.data))
   }, [])
+
+  // FIFO peržiūra: iš kurių partijų nurašys, kol registruojam
+  useEffect(() => {
+    if (!f.production_product_id || !f.qty_produced_kg || !f.l_week_id || +f.qty_produced_kg <= 0) {
+      setPreview(null)
+      return
+    }
+    const t = setTimeout(() => {
+      previewProduction({
+        production_date: f.production_date,
+        production_product_id: +f.production_product_id,
+        qty_produced_kg: +f.qty_produced_kg,
+        l_week_id: +f.l_week_id,
+      }).then((r) => setPreview(r.data)).catch(() => setPreview(null))
+    }, 350)
+    return () => clearTimeout(t)
+  }, [f.production_date, f.production_product_id, f.qty_produced_kg, f.l_week_id])
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -39,12 +60,30 @@ export default function ProductionsPage() {
         setErr(`Dėmesio: trūko partijų – ${missing.map((m) => `${m.raw_material?.name} ${fmtKg(m.qty_kg)} kg`).join(', ')}`)
       }
       setF({ ...f, qty_produced_kg: '', notes: '' })
+      setPreview(null)
       await load()
     } catch (e2) { setErr(errText(e2)) } finally { setBusy(false) }
   }
 
+  const doLock = async (p: Production) => {
+    try { await toggleLock('productions', p.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
+  const doDelete = async (p: Production) => {
+    if (!window.confirm(`Trinti gamybą #${p.id}? Partijos bus atlaisvintos.`)) return
+    try { await deleteRecord('productions', p.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
+  const toggleDetail = async (p: Production) => {
+    if (expandedId === p.id) { setExpandedId(null); setDetail(null); return }
+    setExpandedId(p.id); setDetail(null)
+    try {
+      setDetail((await getProduction(p.id)).data)
+    } catch (e) { setErr(errText(e)) }
+  }
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <Card title="Gamybos žurnalas">
         <Table
           cols={[
@@ -52,35 +91,88 @@ export default function ProductionsPage() {
             { header: 'Rūšis', render: (p) => p.production_product?.name },
             { header: 'Kiekis kg', align: 'right', render: (p) => fmtKg(p.qty_produced_kg) },
             { header: 'L savaitė', render: (p) => <Badge tone="amber">{p.l_week?.code}</Badge> },
-            { header: 'Receptūra', render: (p) => (p.recipe_id ? `v${p.recipe_id}` : '—') },
-            { header: 'Pastabos', render: (p) => p.notes ?? '—' },
+            { header: 'Būsena', render: (p) => p.is_locked ? <Badge tone="green">Įspajamota</Badge> : <Badge>Dokumentas</Badge> },
+            { header: '', render: (p) => (
+              <span className="flex justify-end gap-1 whitespace-nowrap">
+                <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => toggleDetail(p)}>detalės</button>
+                <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => doLock(p)}>{p.is_locked ? 'atrakinti' : 'įspajamoti'}</button>
+                <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(p)}>trinti</button>
+              </span>
+            ) },
           ]}
           rows={rows}
         />
+        {expandedId && detail && detail.usages && (
+          <div className="mt-3 rounded-lg bg-stone-50 p-3 text-sm">
+            <b>Sunaudota žaliavų (gamybą #{detail.id}):</b>
+            <ul className="mt-1">
+              {detail.usages.map((u) => (
+                <li key={u.id} className="flex justify-between py-0.5">
+                  <span>{u.raw_material?.name} ← {u.material_batch?.batch_number ?? <Badge tone="red">TRŪKSTA</Badge>}</span>
+                  <span className="tabular-nums">{fmtKg(u.qty_kg)} kg</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </Card>
 
-      <Card title="Registruoti gamybą">
-        <p className="mb-3 text-xs text-stone-500">Žaliavų sunaudojimas bus paskaičiuotas automatiškai pagal galiojančią receptūrą (FIFO).</p>
-        <form onSubmit={submit} className="grid gap-3">
-          <Field label="Data"><input type="date" className={inputCls} value={f.production_date} onChange={(e) => setF({ ...f, production_date: e.target.value })} required /></Field>
-          <Field label="Gamybinė rūšis">
-            <select className={inputCls} value={f.production_product_id} onChange={(e) => setF({ ...f, production_product_id: e.target.value })} required>
-              <option value="">— pasirinkite —</option>
-              {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </Field>
-          <Field label="Kiekis, kg"><input type="number" step="0.001" min="0.001" className={inputCls} value={f.qty_produced_kg} onChange={(e) => setF({ ...f, qty_produced_kg: e.target.value })} required /></Field>
-          <Field label="L savaitė">
-            <select className={inputCls} value={f.l_week_id} onChange={(e) => setF({ ...f, l_week_id: e.target.value })} required>
-              <option value="">— pasirinkite —</option>
-              {lweeks.map((w) => <option key={w.id} value={w.id}>{w.code}</option>)}
-            </select>
-          </Field>
-          <Field label="Pastabos"><input className={inputCls} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></Field>
-          <button className={btnCls} disabled={busy}>{busy ? 'Saugoma…' : 'Registruoti'}</button>
-          <Err msg={err} />
-        </form>
-      </Card>
+      <div className="grid gap-6 content-start">
+        <Card title="Registruoti gamybą">
+          <p className="mb-3 text-xs text-stone-500">Žaliavų sunaudojimas bus paskaičiuotas automatiškai pagal galiojančią receptūrą (FIFO).</p>
+          <form onSubmit={submit} className="grid gap-3">
+            <Field label="Data"><input type="date" className={inputCls} value={f.production_date} onChange={(e) => setF({ ...f, production_date: e.target.value })} required /></Field>
+            <Field label="Gamybinė rūšis">
+              <select className={inputCls} value={f.production_product_id} onChange={(e) => setF({ ...f, production_product_id: e.target.value })} required>
+                <option value="">— pasirinkite —</option>
+                {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Kiekis, kg"><input type="number" step="0.001" min="0.001" className={inputCls} value={f.qty_produced_kg} onChange={(e) => setF({ ...f, qty_produced_kg: e.target.value })} required /></Field>
+            <Field label="L savaitė">
+              <select className={inputCls} value={f.l_week_id} onChange={(e) => setF({ ...f, l_week_id: e.target.value })} required>
+                <option value="">— pasirinkite —</option>
+                {lweeks.map((w) => <option key={w.id} value={w.id}>{w.code}</option>)}
+              </select>
+            </Field>
+            <Field label="Pastabos"><input className={inputCls} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></Field>
+            <button className={btnCls} disabled={busy}>{busy ? 'Saugoma…' : 'Registruoti'}</button>
+            <Err msg={err} />
+          </form>
+        </Card>
+
+        {preview && (
+          <Card title={`Receptūra v${preview.recipe.version} — nurašymo planas`}>
+            {preview.shortage && (
+              <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                Trūksta žaliavų — dalis bus su „TRŪKSTA" be partijos.
+              </p>
+            )}
+            <ul className="space-y-2 text-sm">
+              {preview.plan.map((row, i) => (
+                <li key={i}>
+                  <div className="flex justify-between font-medium">
+                    <span>{row.raw_material.name}</span>
+                    <span className="tabular-nums text-stone-500">{fmtKg(row.needed_kg)} kg</span>
+                  </div>
+                  <ul className="mt-0.5 space-y-0.5">
+                    {row.take.map((t, j) => (
+                      <li key={j} className="flex justify-between text-xs">
+                        <span>
+                          {t.batch
+                            ? <>{t.batch.batch_number} <span className="text-stone-400">(liko {fmtKg(t.available_kg)})</span></>
+                            : <Badge tone="red">TRŪKSTA</Badge>}
+                        </span>
+                        <span className="tabular-nums">{fmtKg(t.qty_kg)} kg</span>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

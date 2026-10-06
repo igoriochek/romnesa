@@ -63,4 +63,26 @@ class MaterialBatchController extends Controller
 
         return $batch;
     }
+
+    /** Įspajamojimas: užrakinta partija negali būti naikinama ar perduodama. */
+    public function lock(int $id)
+    {
+        $batch = MaterialBatch::findOrFail($id);
+        $batch->update(['is_locked' => ! $batch->is_locked]);
+        $batch->logAudit($batch->is_locked ? 'locked' : 'unlocked');
+        return $batch;
+    }
+
+    public function destroy(int $id)
+    {
+        $batch = MaterialBatch::findOrFail($id);
+        if ($batch->is_locked) {
+            return response()->json(['message' => 'Partija įspajamota (užrakinta) – naikinti negalima.'], 423);
+        }
+        if ($batch->usages()->exists() || $batch->outflows()->exists()) {
+            return response()->json(['message' => 'Partija panaudota gamyboje/perdavimuose – naikinti negalima, tik nurašyti likutį.'], 422);
+        }
+        $batch->delete();
+        return response()->noContent();
+    }
 }

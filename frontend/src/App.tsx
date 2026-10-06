@@ -7,6 +7,7 @@ import MovementsPage from './pages/MovementsPage'
 import OutflowsPage from './pages/OutflowsPage'
 import TraceabilityPage from './pages/TraceabilityPage'
 import ClassifiersPage from './pages/ClassifiersPage'
+import HistoryPage from './pages/HistoryPage'
 import WarehouseStockCard from './pages/StockPage'
 
 const TABS = [
@@ -17,6 +18,7 @@ const TABS = [
   { id: 'outflows', label: 'Perdavimai' },
   { id: 'trace', label: 'Atsekamumas' },
   { id: 'stock', label: 'Likučiai' },
+  { id: 'history', label: 'Istorija' },
   { id: 'classifiers', label: 'Klasifikatoriai' },
 ] as const
 
@@ -76,6 +78,7 @@ function App() {
         {tab === 'outflows' && <OutflowsPage />}
         {tab === 'trace' && <TraceabilityPage />}
         {tab === 'stock' && <WarehouseStockCard />}
+        {tab === 'history' && <HistoryPage />}
         {tab === 'classifiers' && <ClassifiersPage />}
       </main>
     </div>

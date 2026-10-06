@@ -86,10 +86,64 @@ class ProductionController extends Controller
         );
     }
 
+    /**
+     * Gamybos peržiūra NIRAŠANT: parodo galiojančią receptūrą ir
+     * iš kurių partijų (FIFO) būtų nurašoma. „Išpajamavo" - tik registruojant.
+     */
+    public function preview(Request $request)
+    {
+        $data = $request->validate([
+            'production_date'       => 'required|date',
+            'production_product_id' => 'required|exists:production_products,id',
+            'qty_produced_kg'       => 'required|numeric|gt:0',
+            'l_week_id'             => 'required|exists:l_weeks,id',
+        ]);
+
+        $recipe = $this->resolveRecipe($data['production_product_id'], $data['production_date'], $data['l_week_id']);
+
+        if (! $recipe) {
+            return response()->json([
+                'message' => 'Nėra galiojančios receptūros šiai gamybinei rūšiai nurodytai datai.',
+            ], 422);
+        }
+
+        $plan = $recipe->items->map(function ($item) use ($data) {
+            $needed = round($item->qty_kg_per_kg * $data['qty_produced_kg'], 3);
+            return [
+                'raw_material' => $item->rawMaterial,
+                'needed_kg'    => $needed,
+                'take'         => $needed > 0
+                    ? $this->stock->plan($item->raw_material_id, $needed, $data['production_date'])
+                    : [],
+            ];
+        });
+
+        return [
+            'recipe' => $recipe->load('items.rawMaterial'),
+            'plan'   => $plan,
+            'shortage' => $plan->contains(
+                fn ($row) => collect($row['take'])->contains(fn ($a) => $a['batch'] === null)
+            ),
+        ];
+    }
+
+    /** „Įspajamojimas": užrakinta gamyba negali būti naikinama (partijos lieka užfiksuotos). */
+    public function lock(int $id)
+    {
+        $production = Production::findOrFail($id);
+        $production->update(['is_locked' => ! $production->is_locked]);
+        $production->logAudit($production->is_locked ? 'locked' : 'unlocked');
+        return $production;
+    }
+
     public function destroy(int $id)
     {
+        $production = Production::findOrFail($id);
+        if ($production->is_locked) {
+            return response()->json(['message' => 'Gamyba įspajamota (užrakinta) – naikinti negalima.'], 423);
+        }
         // Naikinama gamyba atlaisvina sunaudotas partijas (usages cascade)
-        Production::findOrFail($id)->delete();
+        $production->delete();
         return response()->noContent();
     }
 

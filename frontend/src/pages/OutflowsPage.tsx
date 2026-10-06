@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { createOutflow, getBatches, getOutflows, errText, type MaterialBatch, type MaterialOutflow } from '../api'
+import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, type MaterialBatch, type MaterialOutflow } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
 
 export default function OutflowsPage() {
@@ -34,6 +34,15 @@ export default function OutflowsPage() {
     } catch (e2) { setErr(errText(e2)) } finally { setBusy(false) }
   }
 
+  const doLock = async (o: MaterialOutflow) => {
+    try { await toggleLock('material-outflows', o.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
+  const doDelete = async (o: MaterialOutflow) => {
+    if (!window.confirm(`Trinti įrašą #${o.id}? Partijos likutis grįš.`)) return
+    try { await deleteRecord('material-outflows', o.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <Card title="Žaliavų perdavimai / nurašymai">
@@ -50,6 +59,13 @@ export default function OutflowsPage() {
             { header: 'Kg', align: 'right', render: (o) => fmtKg(o.qty_kg) },
             { header: 'Kam / priežastis', render: (o) => o.destination ?? '—' },
             { header: 'Dok.', render: (o) => o.document_number ?? '—' },
+            { header: '', render: (o) => (
+              <span className="flex justify-end gap-1 whitespace-nowrap">
+                {o.is_locked && <Badge tone="green">Įspajamota</Badge>}
+                <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => doLock(o)}>{o.is_locked ? 'atrakinti' : 'įspajamoti'}</button>
+                <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(o)}>trinti</button>
+              </span>
+            ) },
           ]}
           rows={rows}
         />

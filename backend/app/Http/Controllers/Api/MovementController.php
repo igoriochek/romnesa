@@ -74,4 +74,23 @@ class MovementController extends Controller
             ? null
             : "Sandėlyje nepakanka produkto (liko {$available['qty_units']} vnt / {$available['qty_kg']} kg).";
     }
+
+    /** Įspajamojimas: užrakintas judėjimas nebenaikinamas. */
+    public function lock(int $id)
+    {
+        $movement = ProductMovement::findOrFail($id);
+        $movement->update(['is_locked' => ! $movement->is_locked]);
+        $movement->logAudit($movement->is_locked ? 'locked' : 'unlocked');
+        return $movement;
+    }
+
+    public function destroy(int $id)
+    {
+        $movement = ProductMovement::findOrFail($id);
+        if ($movement->is_locked) {
+            return response()->json(['message' => 'Įrašas įspajamotas (užrakintas) – naikinti negalima.'], 423);
+        }
+        $movement->delete();
+        return response()->noContent();
+    }
 }

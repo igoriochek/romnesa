@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  createMovement, getLWeeks, getMovements, getPackedProducts, getShops, getWarehouses, errText,
+  createMovement, deleteRecord, getLWeeks, getMovements, getPackedProducts, getShops,
+  getWarehouses, toggleLock, errText,
   type LWeek, type PackedProduct, type ProductMovement, type Shop, type Warehouse,
 } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
@@ -62,6 +63,15 @@ export default function MovementsPage() {
     } catch (e2) { setErr(errText(e2)) } finally { setBusy(false) }
   }
 
+  const doLock = async (m: ProductMovement) => {
+    try { await toggleLock('product-movements', m.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
+  const doDelete = async (m: ProductMovement) => {
+    if (!window.confirm(`Trinti judėjimą #${m.id}?`)) return
+    try { await deleteRecord('product-movements', m.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
   const dest = (m: ProductMovement) =>
     m.movement_type === 'pack_in' ? m.warehouse_to?.name
       : m.movement_type === 'move' ? `${m.warehouse_from?.name} → ${m.warehouse_to?.name}`
@@ -94,6 +104,13 @@ export default function MovementsPage() {
             { header: 'Kg', align: 'right', render: (m) => fmtKg(m.qty_kg) },
             { header: 'Maršrutas', render: dest },
             { header: 'Dok.', render: (m) => m.document_number ?? '—' },
+            { header: '', render: (m) => (
+              <span className="flex justify-end gap-1 whitespace-nowrap">
+                {m.is_locked && <Badge tone="green">Įspajamota</Badge>}
+                <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => doLock(m)}>{m.is_locked ? 'atrakinti' : 'įspajamoti'}</button>
+                <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(m)}>trinti</button>
+              </span>
+            ) },
           ]}
           rows={rows}
         />

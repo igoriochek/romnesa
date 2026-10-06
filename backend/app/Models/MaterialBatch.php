@@ -2,16 +2,25 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
 class MaterialBatch extends Model
 {
+    use Auditable;
+
     protected $guarded = ['id'];
 
     protected $casts = [
         'received_date' => 'date',
         'expiry_date' => 'date',
+        'is_locked' => 'boolean',
     ];
+
+    public function auditLabel(): string
+    {
+        return "Partija {$this->batch_number}";
+    }
 
     public function rawMaterial()
     {

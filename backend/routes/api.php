@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CrudController;
+use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\MaterialBatchController;
 use App\Http\Controllers\Api\MovementController;
 use App\Http\Controllers\Api\OutflowController;
@@ -43,18 +44,29 @@ Route::post('recipes', [RecipeController::class, 'store']);
 Route::get('material-batches', [MaterialBatchController::class, 'index']);
 Route::post('material-batches', [MaterialBatchController::class, 'store']);
 Route::get('material-batches/{id}', [MaterialBatchController::class, 'show']);
+Route::post('material-batches/{id}/lock', [MaterialBatchController::class, 'lock']);      // įspajamojimas
+Route::delete('material-batches/{id}', [MaterialBatchController::class, 'destroy']);
 
 Route::get('productions', [ProductionController::class, 'index']);
 Route::post('productions', [ProductionController::class, 'store']);   // automatinis FIFO sunaudojimas
+Route::post('productions/preview', [ProductionController::class, 'preview']); // FIFO planas nerašant
+Route::post('productions/{id}/lock', [ProductionController::class, 'lock']);
 Route::get('productions/{id}', [ProductionController::class, 'show']);
 Route::delete('productions/{id}', [ProductionController::class, 'destroy']);
 
 Route::get('material-outflows', [OutflowController::class, 'index']);
 Route::post('material-outflows', [OutflowController::class, 'store']);
+Route::post('material-outflows/{id}/lock', [OutflowController::class, 'lock']);
+Route::delete('material-outflows/{id}', [OutflowController::class, 'destroy']);
 
 // ---- Produkto judėjimai ----
 Route::get('product-movements', [MovementController::class, 'index']);
 Route::post('product-movements', [MovementController::class, 'store']);
+Route::post('product-movements/{id}/lock', [MovementController::class, 'lock']);
+Route::delete('product-movements/{id}', [MovementController::class, 'destroy']);
+
+// ---- Istorija (visos registracijos/keitimai/uzraktai) ----
+Route::get('history', [HistoryController::class, 'index']);
 
 // ---- Atsekamumas ----
 Route::get('traceability/batch/{id}', [TraceabilityController::class, 'batch']);

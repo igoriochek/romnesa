@@ -94,6 +94,7 @@ export interface MaterialBatch {
   invoice_number: string | null
   expiry_date: string
   notes: string | null
+  is_locked?: boolean
   balance_kg?: number
   days_to_expiry?: number
   raw_material?: RawMaterial
@@ -107,6 +108,7 @@ export interface Production {
   l_week_id: number
   recipe_id: number | null
   notes: string | null
+  is_locked?: boolean
   production_product?: ProductionProduct
   l_week?: LWeek
   usages?: MaterialUsage[]
@@ -132,6 +134,7 @@ export interface MaterialOutflow {
   destination: string | null
   document_number: string | null
   notes: string | null
+  is_locked?: boolean
   material_batch?: MaterialBatch
 }
 
@@ -148,6 +151,7 @@ export interface ProductMovement {
   shop_id: number | null
   document_number: string | null
   notes: string | null
+  is_locked?: boolean
   l_week?: LWeek
   packed_product?: PackedProduct
   warehouse_from?: Warehouse | null
@@ -205,6 +209,7 @@ export const createClassifier = (resource: string, data: object) => api.post(`/$
 export const getBatches = () => api.get<Paginated<MaterialBatch>>('/material-batches')
 export const createBatch = (data: object) => api.post<MaterialBatch>('/material-batches', data)
 export const getProductions = () => api.get<Paginated<Production>>('/productions')
+export const getProduction = (id: number) => api.get<Production>(`/productions/${id}`)
 export const createProduction = (data: object) => api.post<Production>('/productions', data)
 export const getOutflows = () => api.get<Paginated<MaterialOutflow>>('/material-outflows')
 export const createOutflow = (data: object) => api.post<MaterialOutflow>('/material-outflows', data)
@@ -225,3 +230,37 @@ export const getWarehouseStock = () => api.get<WarehouseStockRow[]>('/reports/wa
 export const getShipments = () => api.get<{ shop: string; qty_units: number; qty_kg: number; shipments: number }[]>('/reports/shipments')
 export const suggestPack = (weightKg: number) =>
   api.get<PackedProduct>('/suggest-pack', { params: { weight_kg: weightKg } })
+
+// ---- Gamybos peržiūra (FIFO planas nerašant) ----
+export interface PreviewTake {
+  batch: MaterialBatch | null   // null = TRŪKSTA
+  qty_kg: number
+  available_kg: number
+}
+
+export interface ProductionPreview {
+  recipe: Recipe
+  plan: { raw_material: RawMaterial; needed_kg: number; take: PreviewTake[] }[]
+  shortage: boolean
+}
+
+export const previewProduction = (data: object) => api.post<ProductionPreview>('/productions/preview', data)
+
+// ---- Užraktai (įspajamojimas) ir naikinimas ----
+export const toggleLock = (resource: string, id: number) => api.post(`/${resource}/${id}/lock`)
+export const deleteRecord = (resource: string, id: number) => api.delete(`/${resource}/${id}`)
+
+// ---- Istorija ----
+export interface AuditRow {
+  id: number
+  entity_type: string
+  entity_id: number
+  action: 'created' | 'updated' | 'deleted' | 'locked' | 'unlocked'
+  label: string | null
+  payload: Record<string, unknown> | null
+  user?: { id: number; name: string } | null
+  created_at: string
+}
+
+export const getHistory = (params?: { entity?: string; action?: string; page?: number }) =>
+  api.get<Paginated<AuditRow>>('/history', { params })

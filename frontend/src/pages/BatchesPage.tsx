@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  createBatch, getBatches, getRawMaterials, errText,
+  createBatch, deleteRecord, getBatches, getRawMaterials, toggleLock, errText,
   type MaterialBatch, type RawMaterial,
 } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
@@ -33,6 +33,15 @@ export default function BatchesPage() {
     } catch (e2) { setErr(errText(e2)) } finally { setBusy(false) }
   }
 
+  const doLock = async (b: MaterialBatch) => {
+    try { await toggleLock('material-batches', b.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
+  const doDelete = async (b: MaterialBatch) => {
+    if (!window.confirm(`Trinti partiją ${b.batch_number}?`)) return
+    try { await deleteRecord('material-batches', b.id); await load() } catch (e) { setErr(errText(e)) }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <Card title="Žaliavų partijos">
@@ -49,6 +58,13 @@ export default function BatchesPage() {
                 </Badge>
               ) },
             { header: 'Tiekėjas', render: (b) => b.supplier ?? '—' },
+            { header: '', render: (b) => (
+              <span className="flex justify-end gap-1 whitespace-nowrap">
+                {b.is_locked && <Badge tone="green">Užrakinta</Badge>}
+                <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => doLock(b)}>{b.is_locked ? 'atrakinti' : 'įspajamoti'}</button>
+                <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(b)}>trinti</button>
+              </span>
+            ) },
           ]}
           rows={rows}
         />
