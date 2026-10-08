@@ -22,6 +22,12 @@ class MaterialBatch extends Model
         return "Partija {$this->batch_number}";
     }
 
+    /** Dienos iki galiojimo pabaigos (neigiamos - pasibaigusi). Nuo šiandienos, ne nuo dabartinio laiko. */
+    public function daysToExpiry(): int
+    {
+        return (int) today()->diffInDays($this->expiry_date, false);
+    }
+
     public function rawMaterial()
     {
         return $this->belongsTo(RawMaterial::class);

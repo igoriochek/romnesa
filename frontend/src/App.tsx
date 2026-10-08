@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getHealth, type HealthResponse } from './api'
+import { api, getHealth, type HealthResponse } from './api'
 import Dashboard from './pages/Dashboard'
 import BatchesPage from './pages/BatchesPage'
 import ProductionsPage from './pages/ProductionsPage'
@@ -32,7 +32,7 @@ function App() {
   useEffect(() => {
     getHealth()
       .then((res) => setHealth(res.data))
-      .catch(() => setError('Nepavyko prisijungti prie API (http://localhost:8080)'))
+      .catch(() => setError(`Nepavyko prisijungti prie API (${api.defaults.baseURL})`))
   }, [])
 
   const connected = health !== null && error === null

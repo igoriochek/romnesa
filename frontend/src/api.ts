@@ -96,8 +96,13 @@ export interface MaterialBatch {
   notes: string | null
   is_locked?: boolean
   balance_kg?: number
+  used_kg?: number
+  outflow_kg?: number
   days_to_expiry?: number
   raw_material?: RawMaterial
+  usages?: MaterialUsage[]      // tik GET /material-batches/{id}
+  outflows?: MaterialOutflow[]  // tik GET /material-batches/{id}
+  created_at?: string
 }
 
 export interface Production {
@@ -173,14 +178,38 @@ export interface WarehouseStockRow {
   qty_kg: number
 }
 
+export interface MaterialSummaryRow {
+  id: number
+  raw_material: string
+  received_kg: number
+  used_kg: number
+  outflow_kg: number
+  balance_kg: number
+  expired_kg: number
+}
+
 export interface DashboardData {
   produced_kg: number
   productions: number
   batches_active: number
+  batches_expired: number
   shipped_kg: number
   expiring_soon: MaterialBatch[]
   shortages: MaterialUsage[]
+  materials: MaterialSummaryRow[]
+  updated_at: string
 }
+
+export interface ProductInfo {
+  product: ProductionProduct & { packed_products: PackedProduct[] }
+  recipe: Recipe | null
+  produced_kg: number
+  recent: Production[]
+}
+
+// Žaliava be privalomos partijos (pvz. vanduo) - be partijos tai ne trūkumas
+export const isShortage = (u: { material_batch_id: number | null; raw_material?: RawMaterial }) =>
+  u.material_batch_id === null && u.raw_material?.requires_batch !== false
 
 export interface TraceLWeekResult {
   l_week: LWeek
@@ -207,6 +236,7 @@ export const createClassifier = (resource: string, data: object) => api.post(`/$
 
 // ---- Žaliavų apskaita ----
 export const getBatches = () => api.get<Paginated<MaterialBatch>>('/material-batches')
+export const getBatch = (id: number) => api.get<MaterialBatch>(`/material-batches/${id}`)
 export const createBatch = (data: object) => api.post<MaterialBatch>('/material-batches', data)
 export const getProductions = () => api.get<Paginated<Production>>('/productions')
 export const getProduction = (id: number) => api.get<Production>(`/productions/${id}`)
@@ -225,7 +255,6 @@ export const traceLWeek = (code: string) => api.get<TraceLWeekResult>(`/traceabi
 
 // ---- Ataskaitos ----
 export const getDashboard = () => api.get<DashboardData>('/reports/dashboard')
-export const getBatchBalances = () => api.get<MaterialBatch[]>('/reports/batch-balances')
 export const getWarehouseStock = () => api.get<WarehouseStockRow[]>('/reports/warehouse-stock')
 export const getShipments = () => api.get<{ shop: string; qty_units: number; qty_kg: number; shipments: number }[]>('/reports/shipments')
 export const suggestPack = (weightKg: number) =>
@@ -245,6 +274,8 @@ export interface ProductionPreview {
 }
 
 export const previewProduction = (data: object) => api.post<ProductionPreview>('/productions/preview', data)
+export const getProductInfo = (id: number, params: { production_date?: string; l_week_id?: number }) =>
+  api.get<ProductInfo>(`/productions/product-info/${id}`, { params })
 
 // ---- Užraktai (įspajamojimas) ir naikinimas ----
 export const toggleLock = (resource: string, id: number) => api.post(`/${resource}/${id}/lock`)

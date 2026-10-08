@@ -22,11 +22,7 @@ class MaterialBatchController extends Controller
             ->orderByDesc('id')
             ->paginate(50);
 
-        $batches->getCollection()->transform(function ($b) {
-            $b->balance_kg = $this->stock->batchBalance($b);
-            $b->days_to_expiry = (int) now()->diffInDays($b->expiry_date, false);
-            return $b;
-        });
+        $batches->getCollection()->transform(fn ($b) => $this->stock->withTotals($b));
 
         return $batches;
     }
@@ -58,19 +54,13 @@ class MaterialBatchController extends Controller
             'outflows',
         ])->findOrFail($id);
 
-        $batch->balance_kg = $this->stock->batchBalance($batch);
-        $batch->days_to_expiry = (int) now()->diffInDays($batch->expiry_date, false);
-
-        return $batch;
+        return $this->stock->withTotals($batch);
     }
 
     /** Įspajamojimas: užrakinta partija negali būti naikinama ar perduodama. */
     public function lock(int $id)
     {
-        $batch = MaterialBatch::findOrFail($id);
-        $batch->update(['is_locked' => ! $batch->is_locked]);
-        $batch->logAudit($batch->is_locked ? 'locked' : 'unlocked');
-        return $batch;
+        return MaterialBatch::findOrFail($id)->toggleLock();
     }
 
     public function destroy(int $id)

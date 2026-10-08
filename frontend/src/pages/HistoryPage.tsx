@@ -12,18 +12,26 @@ const ACTIONS: Record<string, { label: string; tone: 'green' | 'amber' | 'red' |
 
 const fmtTime = (iso: string) => iso.slice(0, 16).replace('T', ' ')
 
+const KEY_FIELDS = ['batch_number', 'qty_received_kg', 'qty_produced_kg', 'qty_units', 'qty_kg', 'material_batch_id', 'production_id', 'name', 'code', 'movement_type', 'outflow_type']
+
+const summary = (data: Record<string, unknown>) =>
+  Object.entries(data)
+    .filter(([k, v]) => KEY_FIELDS.includes(k) && v != null)
+    .map(([k, v]) => `${k}=${v}`)
+    .join(' · ')
+
 function changesText(r: AuditRow): string {
   if (!r.payload) return ''
   if (r.action === 'updated') {
-    return Object.keys(r.payload).filter((k) => !['updated_at'].includes(k)).join(', ')
-  }
-  if (r.action === 'created' && r.payload) {
-    const keys = ['batch_number', 'qty_received_kg', 'qty_produced_kg', 'qty_units', 'qty_kg', 'name', 'code', 'movement_type', 'outflow_type']
+    // _old - buvusios reikšmės (seni įrašai jų neturi - rodomi tik laukai)
+    const old = (r.payload._old ?? {}) as Record<string, unknown>
     return Object.entries(r.payload)
-      .filter(([k, v]) => keys.includes(k) && v != null)
-      .map(([k, v]) => `${k}=${v}`)
-      .join(' · ')
+      .filter(([k]) => !['updated_at', '_old'].includes(k))
+      .map(([k, v]) => (k in old ? `${k}: ${old[k] ?? '—'} → ${v ?? '—'}` : k))
+      .join(', ')
   }
+  if (r.action === 'created') return summary(r.payload)
+  if (r.action === 'deleted') return summary((r.payload.deleted ?? {}) as Record<string, unknown>)
   return ''
 }
 
@@ -52,6 +60,13 @@ export default function HistoryPage() {
           <option value="MaterialOutflow">Perdavimai</option>
           <option value="ProductMovement">Judėjimai</option>
           <option value="Recipe">Receptūros</option>
+          <option value="RecipeItem">Receptūrų eilutės</option>
+          <option value="RawMaterial">Žaliavos</option>
+          <option value="ProductionProduct">Gamybinės rūšys</option>
+          <option value="PackedProduct">Fasavimo rūšys</option>
+          <option value="Warehouse">Sandėliai</option>
+          <option value="Shop">Parduotuvės</option>
+          <option value="LWeek">L savaitės</option>
         </select>
       }
     >

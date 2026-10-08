@@ -22,4 +22,17 @@ trait Auditable
     {
         Audit::write($this, $action, $payload);
     }
+
+    /**
+     * Įspajamojimas / atrakinimas. saveQuietly - kad wildcard listeneris
+     * neįrašytų papildomo „updated" šalia „locked"/„unlocked".
+     */
+    public function toggleLock(): static
+    {
+        $this->is_locked = ! $this->is_locked;
+        $this->saveQuietly();
+        $this->logAudit($this->is_locked ? 'locked' : 'unlocked');
+
+        return $this;
+    }
 }

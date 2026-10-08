@@ -79,4 +79,6 @@ export const btnCls =
   'rounded-lg bg-amber-800 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50'
 
 export const fmtDate = (iso?: string | null) => (iso ? iso.slice(0, 10) : '—')
+// Šiandienos data vietos laiku (toISOString() duotų UTC - po vidurnakčio LT būtų vakar)
+export const todayIso = () => new Date().toLocaleDateString('sv-SE')
 export const fmtKg = (n?: number | null) => (n == null ? '—' : Number(n).toFixed(3).replace(/\.?0+$/, ''))

@@ -28,7 +28,7 @@ class TraceabilityController extends Controller
 
         $lWeekIds = $usages->pluck('production.l_week_id')->filter()->unique()->values();
 
-        $shipments = ProductMovement::with(['shop', 'warehouseTo', 'packedProduct'])
+        $shipments = ProductMovement::with(['shop', 'warehouseFrom', 'warehouseTo', 'packedProduct'])
             ->whereIn('l_week_id', $lWeekIds)
             ->orderBy('movement_date')->get();
 

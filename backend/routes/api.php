@@ -50,6 +50,7 @@ Route::delete('material-batches/{id}', [MaterialBatchController::class, 'destroy
 Route::get('productions', [ProductionController::class, 'index']);
 Route::post('productions', [ProductionController::class, 'store']);   // automatinis FIFO sunaudojimas
 Route::post('productions/preview', [ProductionController::class, 'preview']); // FIFO planas nerašant
+Route::get('productions/product-info/{id}', [ProductionController::class, 'productInfo']); // pasirinktos rūšies informacija
 Route::post('productions/{id}/lock', [ProductionController::class, 'lock']);
 Route::get('productions/{id}', [ProductionController::class, 'show']);
 Route::delete('productions/{id}', [ProductionController::class, 'destroy']);

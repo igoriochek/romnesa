@@ -62,10 +62,7 @@ class OutflowController extends Controller
     /** Įspajamojimas: užrakintas įrašas nebenaikinamas. */
     public function lock(int $id)
     {
-        $outflow = MaterialOutflow::findOrFail($id);
-        $outflow->update(['is_locked' => ! $outflow->is_locked]);
-        $outflow->logAudit($outflow->is_locked ? 'locked' : 'unlocked');
-        return $outflow;
+        return MaterialOutflow::findOrFail($id)->toggleLock();
     }
 
     public function destroy(int $id)

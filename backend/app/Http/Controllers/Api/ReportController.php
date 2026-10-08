@@ -26,27 +26,41 @@ class ReportController extends Controller
     /** Dashboard KPI. */
     public function dashboard()
     {
-        $batches = MaterialBatch::with('rawMaterial')->get();
+        $batches = MaterialBatch::with('rawMaterial')->get()
+            ->each(fn ($b) => $this->materialStock->withTotals($b));
+        $active = $batches->filter(fn ($b) => $b->balance_kg > 0.001);
 
-        $expiring = $batches->map(function ($b) {
-                $b->balance_kg = $this->materialStock->batchBalance($b);
-                $b->days_to_expiry = (int) now()->diffInDays($b->expiry_date, false);
-                return $b;
-            })
-            ->filter(fn ($b) => $b->balance_kg > 0.001 && $b->days_to_expiry <= 14)
+        $expiring = $active
+            ->filter(fn ($b) => $b->days_to_expiry <= 14)
             ->sortBy('days_to_expiry')->values();
 
+        // Trūkumas - tik žaliavoms, kurioms partija privaloma (vanduo ir pan. - išimtys)
         $shortages = MaterialUsage::whereNull('material_batch_id')
+            ->whereHas('rawMaterial', fn ($q) => $q->where('requires_batch', true))
             ->with(['rawMaterial', 'production.lWeek'])
             ->orderByDesc('id')->limit(20)->get();
+
+        // Pagrindinių žaliavų gauta / sunaudota / perduota / likutis (aprašo „8 Suvestinė")
+        $materials = $batches->groupBy('raw_material_id')->map(fn ($bs) => [
+            'id'           => $bs->first()->raw_material_id,
+            'raw_material' => $bs->first()->rawMaterial?->name,
+            'received_kg'  => round($bs->sum(fn ($b) => (float) $b->qty_received_kg), 3),
+            'used_kg'      => round($bs->sum('used_kg'), 3),
+            'outflow_kg'   => round($bs->sum('outflow_kg'), 3),
+            'balance_kg'   => round($bs->sum('balance_kg'), 3),
+            'expired_kg'   => round($bs->filter(fn ($b) => $b->days_to_expiry < 0)->sum('balance_kg'), 3),
+        ])->sortBy('raw_material')->values();
 
         return [
             'produced_kg'      => (float) Production::sum('qty_produced_kg'),
             'productions'      => Production::count(),
-            'batches_active'   => $batches->filter(fn ($b) => $this->materialStock->batchBalance($b) > 0.001)->count(),
+            'batches_active'   => $active->count(),
+            'batches_expired'  => $active->filter(fn ($b) => $b->days_to_expiry < 0)->count(),
             'expiring_soon'    => $expiring,
             'shortages'        => $shortages,
+            'materials'        => $materials,
             'shipped_kg'       => (float) ProductMovement::where('movement_type', 'ship_out')->sum('qty_kg'),
+            'updated_at'       => now()->toIso8601String(),
         ];
     }
 
@@ -63,7 +77,7 @@ class ReportController extends Controller
                     'expiry_date'     => $b->expiry_date,
                     'qty_received_kg' => (float) $b->qty_received_kg,
                     'balance_kg'      => $this->materialStock->batchBalance($b),
-                    'days_to_expiry'  => (int) now()->diffInDays($b->expiry_date, false),
+                    'days_to_expiry'  => $b->daysToExpiry(),
                 ];
             });
     }

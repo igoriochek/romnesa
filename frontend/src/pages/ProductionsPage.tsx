@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
   createProduction, deleteRecord, getLWeeks, getProductionProducts, getProductions,
-  getProduction, previewProduction, toggleLock, errText,
-  type LWeek, type Production, type ProductionPreview, type ProductionProduct,
+  getProduction, getProductInfo, previewProduction, toggleLock, errText, isShortage,
+  type LWeek, type Production, type ProductInfo, type ProductionPreview, type ProductionProduct,
 } from '../api'
-import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
+import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls, todayIso } from '../ui'
 
 export default function ProductionsPage() {
   const [rows, setRows] = useState<Production[]>([])
@@ -15,8 +15,9 @@ export default function ProductionsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [detail, setDetail] = useState<Production | null>(null)
   const [preview, setPreview] = useState<ProductionPreview | null>(null)
+  const [info, setInfo] = useState<ProductInfo | null>(null)
   const [f, setF] = useState({
-    production_date: new Date().toISOString().slice(0, 10),
+    production_date: todayIso(),
     production_product_id: '', qty_produced_kg: '', l_week_id: '', notes: '',
   })
 
@@ -27,6 +28,17 @@ export default function ProductionsPage() {
     getProductionProducts().then((r) => setProducts(r.data.data))
     getLWeeks().then((r) => setLweeks(r.data.data))
   }, [])
+
+  // Pasirinkus gamybinę rūšį - iškart visa jos informacija (receptūra, fasavimo rūšys, paskutinės gamybos)
+  const loadInfo = () => {
+    if (!f.production_product_id) { setInfo(null); return }
+    getProductInfo(+f.production_product_id, {
+      production_date: f.production_date,
+      l_week_id: f.l_week_id ? +f.l_week_id : undefined,
+    }).then((r) => setInfo(r.data)).catch(() => setInfo(null))
+  }
+
+  useEffect(loadInfo, [f.production_product_id, f.production_date, f.l_week_id])
 
   // FIFO peržiūra: iš kurių partijų nurašys, kol registruojam
   useEffect(() => {
@@ -55,13 +67,14 @@ export default function ProductionsPage() {
         qty_produced_kg: +f.qty_produced_kg,
         l_week_id: +f.l_week_id,
       })
-      const missing = res.data.usages?.filter((u) => u.material_batch_id === null)
+      const missing = res.data.usages?.filter(isShortage)
       if (missing?.length) {
         setErr(`Dėmesio: trūko partijų – ${missing.map((m) => `${m.raw_material?.name} ${fmtKg(m.qty_kg)} kg`).join(', ')}`)
       }
       setF({ ...f, qty_produced_kg: '', notes: '' })
       setPreview(null)
       await load()
+      loadInfo() // atnaujina rūšies paskutines gamybas
     } catch (e2) { setErr(errText(e2)) } finally { setBusy(false) }
   }
 
@@ -108,7 +121,7 @@ export default function ProductionsPage() {
             <ul className="mt-1">
               {detail.usages.map((u) => (
                 <li key={u.id} className="flex justify-between py-0.5">
-                  <span>{u.raw_material?.name} ← {u.material_batch?.batch_number ?? <Badge tone="red">TRŪKSTA</Badge>}</span>
+                  <span>{u.raw_material?.name} ← {u.material_batch?.batch_number ?? (isShortage(u) ? <Badge tone="red">TRŪKSTA</Badge> : <Badge>be partijos</Badge>)}</span>
                   <span className="tabular-nums">{fmtKg(u.qty_kg)} kg</span>
                 </li>
               ))}
@@ -141,6 +154,48 @@ export default function ProductionsPage() {
           </form>
         </Card>
 
+        {info && !preview && (
+          <Card title={info.product.name}>
+            {info.recipe ? (
+              <>
+                <p className="mb-1 text-xs text-stone-500">
+                  Receptūra v{info.recipe.version} · galioja nuo {fmtDate(info.recipe.valid_from)} · kg žaliavos / 1 kg produkto
+                </p>
+                <ul className="text-sm">
+                  {info.recipe.items?.map((i) => (
+                    <li key={i.id} className="flex justify-between">
+                      <span>{i.raw_material?.name}{i.raw_material?.requires_batch === false && <span className="text-stone-400"> (be partijos)</span>}</span>
+                      <span className="tabular-nums">{fmtKg(i.qty_kg_per_kg)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <Err msg="Nėra galiojančios receptūros šiai datai" />
+            )}
+            <p className="mt-3 text-xs font-medium text-stone-500">Fasavimo rūšys</p>
+            <ul className="text-sm">
+              {info.product.packed_products.map((p) => (
+                <li key={p.id} className="flex justify-between">
+                  <span>{p.name}</span>
+                  <span className="text-stone-400">{p.weight_from_kg != null ? `${fmtKg(p.weight_from_kg)}–${fmtKg(p.weight_to_kg)} kg` : ''}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs font-medium text-stone-500">Pagaminta iš viso: {fmtKg(info.produced_kg)} kg · paskutinės gamybos</p>
+            <ul className="text-sm">
+              {info.recent.map((p) => (
+                <li key={p.id} className="flex justify-between">
+                  <span>{fmtDate(p.production_date)} · {p.l_week?.code}</span>
+                  <span className="tabular-nums">{fmtKg(p.qty_produced_kg)} kg</span>
+                </li>
+              ))}
+              {info.recent.length === 0 && <li className="text-stone-400">Dar negaminta</li>}
+            </ul>
+            <p className="mt-3 text-xs text-stone-500">Įveskite kiekį ir L savaitę – bus parodyta, iš kurių partijų nurašoma.</p>
+          </Card>
+        )}
+
         {preview && (
           <Card title={`Receptūra v${preview.recipe.version} — nurašymo planas`}>
             {preview.shortage && (
@@ -156,6 +211,9 @@ export default function ProductionsPage() {
                     <span className="tabular-nums text-stone-500">{fmtKg(row.needed_kg)} kg</span>
                   </div>
                   <ul className="mt-0.5 space-y-0.5">
+                    {!row.raw_material.requires_batch && (
+                      <li className="text-xs text-stone-500">Išimtis – partija nereikalinga, fiksuojamas tik kiekis</li>
+                    )}
                     {row.take.map((t, j) => (
                       <li key={j} className="flex justify-between text-xs">
                         <span>

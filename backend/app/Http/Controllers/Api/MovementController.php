@@ -40,6 +40,13 @@ class MovementController extends Controller
             'notes'              => 'nullable|string|max:255',
         ]);
 
+        // Tik tipui aktualūs laukai - kitaip likę formos laukai iškraipo sandėlių likučius
+        $data = match ($data['movement_type']) {
+            'pack_in'  => [...$data, 'warehouse_from_id' => null, 'shop_id' => null],
+            'move'     => [...$data, 'shop_id' => null],
+            'ship_out' => [...$data, 'warehouse_to_id' => null],
+        };
+
         $errors = $this->validateMovement($data);
         if ($errors) {
             return response()->json(['message' => $errors], 422);
@@ -58,7 +65,7 @@ class MovementController extends Controller
         return match ($data['movement_type']) {
             'pack_in' => isset($data['warehouse_to_id']) ? null : 'pack_in reikalauja warehouse_to_id',
             'move' => (isset($data['warehouse_from_id'], $data['warehouse_to_id'])
-                    && $data['warehouse_from_id'] !== $data['warehouse_to_id'])
+                    && $data['warehouse_from_id'] != $data['warehouse_to_id'])
                 ? $this->checkStock($data, $data['warehouse_from_id'])
                 : 'move reikalauja skirtingų warehouse_from_id ir warehouse_to_id',
             'ship_out' => (isset($data['warehouse_from_id'], $data['shop_id']))
@@ -78,10 +85,7 @@ class MovementController extends Controller
     /** Įspajamojimas: užrakintas judėjimas nebenaikinamas. */
     public function lock(int $id)
     {
-        $movement = ProductMovement::findOrFail($id);
-        $movement->update(['is_locked' => ! $movement->is_locked]);
-        $movement->logAudit($movement->is_locked ? 'locked' : 'unlocked');
-        return $movement;
+        return ProductMovement::findOrFail($id)->toggleLock();
     }
 
     public function destroy(int $id)
@@ -89,6 +93,13 @@ class MovementController extends Controller
         $movement = ProductMovement::findOrFail($id);
         if ($movement->is_locked) {
             return response()->json(['message' => 'Įrašas įspajamotas (užrakintas) – naikinti negalima.'], 423);
+        }
+        // Atšaukus papildymą sandėlio likutis negali tapti neigiamas (produktas jau perkeltas/išvežtas)
+        if ($movement->warehouse_to_id) {
+            $left = $this->stock->balance($movement->packed_product_id, $movement->l_week_id, $movement->warehouse_to_id);
+            if ($left['qty_units'] < $movement->qty_units || round($left['qty_kg'] - (float) $movement->qty_kg, 3) < 0) {
+                return response()->json(['message' => 'Produktas iš šio sandėlio jau perkeltas/išvežtas – pirmiau trinkite vėlesnius judėjimus.'], 422);
+            }
         }
         $movement->delete();
         return response()->noContent();

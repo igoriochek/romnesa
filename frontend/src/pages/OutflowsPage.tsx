@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, type MaterialBatch, type MaterialOutflow } from '../api'
-import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
+import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls, todayIso } from '../ui'
 
 export default function OutflowsPage() {
   const [rows, setRows] = useState<MaterialOutflow[]>([])
@@ -8,7 +8,7 @@ export default function OutflowsPage() {
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [f, setF] = useState({
-    outflow_date: new Date().toISOString().slice(0, 10),
+    outflow_date: todayIso(),
     material_batch_id: '', qty_kg: '', outflow_type: 'transfer',
     destination: '', document_number: '', notes: '',
   })

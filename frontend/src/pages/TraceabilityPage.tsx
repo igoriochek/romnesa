@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { getBatches, traceBatch, traceLWeek, errText, type MaterialBatch, type TraceBatchResult, type TraceLWeekResult } from '../api'
+import { useEffect, useState } from 'react'
+import { getBatches, traceBatch, traceLWeek, errText, isShortage, type MaterialBatch, type TraceBatchResult, type TraceLWeekResult } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
-import { useEffect } from 'react'
 
 export default function TraceabilityPage() {
   const [mode, setMode] = useState<'lweek' | 'batch'>('lweek')
@@ -67,7 +66,7 @@ export default function TraceabilityPage() {
             <Table
               cols={[
                 { header: 'Žaliava', render: (u) => u.raw_material?.name },
-                { header: 'Partija', render: (u) => u.material_batch?.batch_number ?? <Badge tone="red">TRŪKSTA</Badge> },
+                { header: 'Partija', render: (u) => u.material_batch?.batch_number ?? (isShortage(u) ? <Badge tone="red">TRŪKSTA</Badge> : <Badge>be partijos</Badge>) },
                 { header: 'Kg', align: 'right', render: (u) => fmtKg(u.qty_kg) },
                 { header: 'Gamyba', render: (u) => `#${u.production_id}` },
               ]}

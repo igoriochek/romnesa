@@ -42,7 +42,11 @@ class AppServiceProvider extends ServiceProvider
             }
             $data = match ($action) {
                 'created' => $model->getAttributes(),
-                'updated' => $model->getChanges(),
+                // naujos reikšmės + _old: buvusios (updated įvykio metu original dar nesinchronizuotas)
+                'updated' => [
+                    ...$model->getChanges(),
+                    '_old' => array_intersect_key($model->getRawOriginal(), $model->getChanges()),
+                ],
                 'deleted' => ['deleted' => $model->getOriginal()],
             };
             Audit::write($model, $action, $data);

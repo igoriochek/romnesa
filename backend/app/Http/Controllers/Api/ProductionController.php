@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\MaterialUsage;
 use App\Models\Production;
+use App\Models\ProductionProduct;
 use App\Models\Recipe;
 use App\Services\MaterialStockService;
 use Illuminate\Http\Request;
@@ -13,8 +14,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Gamyba (Excel "2 Gamyba"). Sukūrus gamybą automatiškai
  * generuojamas sunaudojimas pagal galiojančią receptūrą,
- * žaliavos paskirstomos FIFO (anksčiausia galiojimo data).
+ * žaliavos paskirstomos FIFO (seniausiai gauta galiojanti partija).
  * Nepakanka partijos -> eilutė su material_batch_id = NULL (TRŪKSTA).
+ * Išimtys (requires_batch=false, pvz. vanduo) - kiekis fiksuojamas, partija nereikalinga.
  */
 class ProductionController extends Controller
 {
@@ -67,7 +69,11 @@ class ProductionController extends Controller
                 if ($needed <= 0) {
                     continue;
                 }
-                foreach ($this->stock->allocateFifo($item->raw_material_id, $needed, $production->production_date->toDateString()) as $a) {
+                $allocations = $item->rawMaterial->requires_batch
+                    ? $this->stock->allocateFifo($item->raw_material_id, $needed, $production->production_date->toDateString())
+                    : [['batch_id' => null, 'qty_kg' => $needed]];
+
+                foreach ($allocations as $a) {
                     MaterialUsage::create([
                         'production_id'     => $production->id,
                         'raw_material_id'   => $item->raw_material_id,
@@ -112,14 +118,14 @@ class ProductionController extends Controller
             return [
                 'raw_material' => $item->rawMaterial,
                 'needed_kg'    => $needed,
-                'take'         => $needed > 0
+                'take'         => $needed > 0 && $item->rawMaterial->requires_batch
                     ? $this->stock->plan($item->raw_material_id, $needed, $data['production_date'])
                     : [],
             ];
         });
 
         return [
-            'recipe' => $recipe->load('items.rawMaterial'),
+            'recipe' => $recipe,
             'plan'   => $plan,
             'shortage' => $plan->contains(
                 fn ($row) => collect($row['take'])->contains(fn ($a) => $a['batch'] === null)
@@ -127,13 +133,31 @@ class ProductionController extends Controller
         ];
     }
 
+    /**
+     * Pasirinkus gamybinę rūšį - visa jos informacija: galiojanti receptūra,
+     * fasavimo rūšys (Priedas A), paskutinės gamybos ir bendras pagamintas kiekis.
+     */
+    public function productInfo(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'production_date' => 'nullable|date',
+            'l_week_id'       => 'nullable|integer',
+        ]);
+        $product = ProductionProduct::with(['packedProducts' => fn ($q) => $q->orderBy('weight_from_kg')])->findOrFail($id);
+
+        return [
+            'product'     => $product,
+            'recipe'      => $this->resolveRecipe($id, $data['production_date'] ?? today()->toDateString(), (int) ($data['l_week_id'] ?? 0)),
+            'produced_kg' => (float) $product->productions()->sum('qty_produced_kg'),
+            'recent'      => $product->productions()->with('lWeek')
+                ->orderByDesc('production_date')->orderByDesc('id')->limit(5)->get(),
+        ];
+    }
+
     /** „Įspajamojimas": užrakinta gamyba negali būti naikinama (partijos lieka užfiksuotos). */
     public function lock(int $id)
     {
-        $production = Production::findOrFail($id);
-        $production->update(['is_locked' => ! $production->is_locked]);
-        $production->logAudit($production->is_locked ? 'locked' : 'unlocked');
-        return $production;
+        return Production::findOrFail($id)->toggleLock();
     }
 
     public function destroy(int $id)
@@ -142,15 +166,19 @@ class ProductionController extends Controller
         if ($production->is_locked) {
             return response()->json(['message' => 'Gamyba įspajamota (užrakinta) – naikinti negalima.'], 423);
         }
-        // Naikinama gamyba atlaisvina sunaudotas partijas (usages cascade)
-        $production->delete();
+        // Naikinama gamyba atlaisvina sunaudotas partijas. Sunaudojimai trinami per Eloquent
+        // (ne DB cascade), kad kiekvienas liktų istorijoje.
+        DB::transaction(function () use ($production) {
+            $production->usages->each->delete();
+            $production->delete();
+        });
         return response()->noContent();
     }
 
     /** Galiojanti receptūros versija: L-partijai skirta > naujausia galiojanti versija. */
     private function resolveRecipe(int $productId, string $date, int $lWeekId): ?Recipe
     {
-        return Recipe::with('items')
+        return Recipe::with('items.rawMaterial')
             ->where('production_product_id', $productId)
             ->where('valid_from', '<=', $date)
             ->where(fn ($q) => $q->whereNull('valid_to')->orWhere('valid_to', '>=', $date))

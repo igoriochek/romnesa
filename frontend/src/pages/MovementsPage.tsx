@@ -4,7 +4,7 @@ import {
   getWarehouses, toggleLock, errText,
   type LWeek, type PackedProduct, type ProductMovement, type Shop, type Warehouse,
 } from '../api'
-import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
+import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls, todayIso } from '../ui'
 
 const TYPES: Record<ProductMovement['movement_type'], string> = {
   pack_in: 'Fasavimo papildymas',
@@ -26,7 +26,7 @@ export default function MovementsPage() {
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [f, setF] = useState({
-    movement_date: new Date().toISOString().slice(0, 10),
+    movement_date: todayIso(),
     movement_type: 'pack_in', l_week_id: '', packed_product_id: '',
     qty_units: '', qty_kg: '', warehouse_from_id: '', warehouse_to_id: '',
     shop_id: '', document_number: '', notes: '',
@@ -54,9 +54,10 @@ export default function MovementsPage() {
         packed_product_id: +f.packed_product_id,
         qty_units: +f.qty_units,
         qty_kg: +f.qty_kg,
-        warehouse_from_id: f.warehouse_from_id ? +f.warehouse_from_id : null,
-        warehouse_to_id: f.warehouse_to_id ? +f.warehouse_to_id : null,
-        shop_id: f.shop_id ? +f.shop_id : null,
+        // Paslėpti (kitam tipui skirti) laukai nesiunčiami
+        warehouse_from_id: f.movement_type !== 'pack_in' && f.warehouse_from_id ? +f.warehouse_from_id : null,
+        warehouse_to_id: f.movement_type !== 'ship_out' && f.warehouse_to_id ? +f.warehouse_to_id : null,
+        shop_id: f.movement_type === 'ship_out' && f.shop_id ? +f.shop_id : null,
       })
       setF({ ...f, qty_units: '', qty_kg: '', document_number: '', notes: '' })
       await load()
@@ -152,7 +153,7 @@ export default function MovementsPage() {
             <Field label="Į sandėlį">
               <select className={inputCls} value={f.warehouse_to_id} onChange={(e) => set('warehouse_to_id', e.target.value)} required>
                 <option value="">— pasirinkite —</option>
-                {warehouses.filter((w) => String(w.id) !== f.warehouse_from_id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                {warehouses.filter((w) => f.movement_type === 'pack_in' || String(w.id) !== f.warehouse_from_id).map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
               </select>
             </Field>
           )}
