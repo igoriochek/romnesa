@@ -6,6 +6,44 @@ export const api = axios.create({
   headers: { Accept: 'application/json' },
 })
 
+const primaryApiUrl: string = import.meta.env.VITE_API_URL ?? '/api'
+const localApiUrl: string | undefined = import.meta.env.VITE_LOCAL_API_URL
+
+const isUp = (base: string, timeout: number) =>
+  axios.get(`${base}/health`, { timeout }).then(() => true, () => false)
+
+let switchingToLocal: Promise<boolean> | null = null
+
+const useLocalIfUp = (): Promise<boolean> => {
+  if (!localApiUrl) return Promise.resolve(false)
+  switchingToLocal ??= isUp(localApiUrl, 2000).then((up) => {
+    if (up) api.defaults.baseURL = localApiUrl
+    return up
+  })
+  return switchingToLocal
+}
+
+const apiReady: Promise<unknown> = localApiUrl
+  ? isUp(primaryApiUrl, 5000).then((up) => (up ? true : useLocalIfUp()))
+  : Promise.resolve()
+
+api.interceptors.request.use(async (config) => {
+  await apiReady
+  config.baseURL = api.defaults.baseURL
+  return config
+})
+
+api.interceptors.response.use(undefined, async (error) => {
+  const cfg = error?.config as (typeof error.config & { _retriedLocal?: boolean }) | undefined
+  const serverFailed = !error?.response || error.response.status >= 500
+  if (cfg && !cfg._retriedLocal && serverFailed && api.defaults.baseURL !== localApiUrl && (await useLocalIfUp())) {
+    cfg._retriedLocal = true
+    cfg.baseURL = localApiUrl
+    return api.request(cfg)
+  }
+  return Promise.reject(error)
+})
+
 // Išskleidžia Laravel validacijos klaidą į tekstą
 export const errText = (e: unknown): string => {
   if (axios.isAxiosError(e) && e.response?.data) {

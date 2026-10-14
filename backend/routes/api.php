@@ -15,6 +15,16 @@ use Illuminate\Support\Facades\Route;
 
 // Sveikatos patikra - frontendas tikrina ryšį su backend
 Route::get('/health', function () {
+    try {
+        DB::connection()->getPdo();
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'db_error',
+            'app' => config('app.name'),
+            'database' => DB::connection()->getDatabaseName(),
+        ], 503);
+    }
+
     return response()->json([
         'status' => 'ok',
         'app' => config('app.name'),
