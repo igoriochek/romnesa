@@ -16,8 +16,9 @@ let switchingToLocal: Promise<boolean> | null = null
 
 const useLocalIfUp = (): Promise<boolean> => {
   if (!localApiUrl) return Promise.resolve(false)
-  switchingToLocal ??= isUp(localApiUrl, 2000).then((up) => {
+  switchingToLocal ??= isUp(localApiUrl, 60000).then((up) => {
     if (up) api.defaults.baseURL = localApiUrl
+    else switchingToLocal = null
     return up
   })
   return switchingToLocal
@@ -27,10 +28,43 @@ const apiReady: Promise<unknown> = localApiUrl
   ? isUp(primaryApiUrl, 5000).then((up) => (up ? true : useLocalIfUp()))
   : Promise.resolve()
 
+// ---- Prisijungimas (Sanctum žetonas localStorage) ----
+const TOKEN_KEY = 'romnesa_token'
+
+export const getToken = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
+}
+
+const setToken = (token: string | null) => {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token)
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    // privatus režimas - liks tik šiai sesijai
+  }
+}
+
+// App klausosi - pasibaigus žetonui grąžina į prisijungimo langą
+export const AUTH_EXPIRED_EVENT = 'romnesa:auth-expired'
+
 api.interceptors.request.use(async (config) => {
   await apiReady
   config.baseURL = api.defaults.baseURL
+  const token = getToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
   return config
+})
+
+api.interceptors.response.use(undefined, async (error) => {
+  if (error?.response?.status === 401 && getToken()) {
+    setToken(null)
+    window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+  }
+  return Promise.reject(error)
 })
 
 api.interceptors.response.use(undefined, async (error) => {
@@ -259,6 +293,29 @@ export interface TraceBatchResult {
   batch: MaterialBatch & { balance_kg: number }
   usages: MaterialUsage[]
   movements: ProductMovement[]
+}
+
+export interface User {
+  id: number
+  name: string
+  username: string
+  role: string
+}
+
+export const login = async (username: string, password: string): Promise<User> => {
+  const res = await api.post<{ token: string; user: User }>('/login', { username, password })
+  setToken(res.data.token)
+  return res.data.user
+}
+
+export const getMe = () => api.get<User>('/user')
+
+export const logout = async () => {
+  try {
+    await api.post('/logout')
+  } finally {
+    setToken(null)
+  }
 }
 
 // ---- Klasifikatoriai ----

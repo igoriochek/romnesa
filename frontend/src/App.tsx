@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { api, getHealth, type HealthResponse } from './api'
+import { api, AUTH_EXPIRED_EVENT, getHealth, getMe, getToken, logout, type HealthResponse, type User } from './api'
+import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import BatchesPage from './pages/BatchesPage'
 import ProductionsPage from './pages/ProductionsPage'
@@ -25,6 +26,23 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id']
 
 function App() {
+  // undefined = tikrinama, null = neprisijungta
+  const [user, setUser] = useState<User | null | undefined>(getToken() ? undefined : null)
+
+  useEffect(() => {
+    if (getToken()) getMe().then((res) => setUser(res.data), () => setUser(null))
+    const expired = () => setUser(null)
+    window.addEventListener(AUTH_EXPIRED_EVENT, expired)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, expired)
+  }, [])
+
+  if (user === undefined) return <div className="min-h-screen bg-stone-100" />
+  if (user === null) return <LoginPage onLogin={setUser} />
+
+  return <Shell user={user} onLogout={() => logout().finally(() => setUser(null))} />
+}
+
+function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [tab, setTab] = useState<TabId>('dash')
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -42,13 +60,22 @@ function App() {
       <header className="bg-amber-900 px-6 py-4 text-amber-50 shadow">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <h1 className="text-xl font-semibold tracking-tight">UAB Romnesa — Šakočių apskaita</h1>
-          <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${
-              connected ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
-            }`}
-          >
-            {connected ? 'API prisijungta' : error ?? 'Jungiamasi…'}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`rounded-full px-3 py-1 text-sm font-medium ${
+                connected ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
+              }`}
+            >
+              {connected ? 'API prisijungta' : error ?? 'Jungiamasi…'}
+            </span>
+            <span className="text-sm text-amber-100">{user.name}</span>
+            <button
+              onClick={onLogout}
+              className="rounded-lg bg-amber-50/10 px-3 py-1 text-sm font-medium text-amber-50 hover:bg-amber-50/20"
+            >
+              Atsijungti
+            </button>
+          </div>
         </div>
       </header>
 

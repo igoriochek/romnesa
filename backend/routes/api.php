@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CrudController;
 use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\MaterialBatchController;
@@ -9,7 +10,6 @@ use App\Http\Controllers\Api\ProductionController;
 use App\Http\Controllers\Api\RecipeController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TraceabilityController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -32,9 +32,14 @@ Route::get('/health', function () {
     ]);
 });
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// ---- Prisijungimas ----
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+
+// Visa kita - tik prisijungusiems
+Route::middleware('auth:sanctum')->group(function () {
+
+Route::get('user', [AuthController::class, 'me']);
+Route::post('logout', [AuthController::class, 'logout']);
 
 // ---- Klasifikatoriai (paprasčiausi CRUD) ----
 Route::apiResource('raw-materials', CrudController::class)->parameters(['raw-materials' => 'id']);
@@ -91,3 +96,5 @@ Route::get('reports/shipments', [ReportController::class, 'shipments']);
 
 // ---- Automatinis fasavimo rūšies parinkimas pagal svorį (Priedas A) ----
 Route::get('suggest-pack', [RecipeController::class, 'suggestPack']);
+
+});
