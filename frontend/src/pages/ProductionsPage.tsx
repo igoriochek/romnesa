@@ -4,7 +4,11 @@ import {
   getProduction, getProductInfo, previewProduction, toggleLock, errText, isShortage,
   type LWeek, type Production, type ProductInfo, type ProductionPreview, type ProductionProduct,
 } from '../api'
-import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls, todayIso } from '../ui'
+import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtEur, fmtKg, fmtUnitEur, inputCls, todayIso } from '../ui'
+
+/** Savikaina su žyma „*", kai ne visoms sunaudotoms partijoms nurodyta kaina. */
+const costText = (text: string, complete?: boolean) =>
+  <span title={complete === false ? 'Ne visoms partijoms nurodyta savikaina' : undefined}>{text}{complete === false && text !== '—' && ' *'}</span>
 
 export default function ProductionsPage() {
   const [rows, setRows] = useState<Production[]>([])
@@ -96,7 +100,7 @@ export default function ProductionsPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_380px] print-grid-1">
       <Card title="Gamybos žurnalas">
         <Table
           cols={[
@@ -104,6 +108,8 @@ export default function ProductionsPage() {
             { header: 'Rūšis', render: (p) => p.production_product?.name },
             { header: 'Kiekis kg', align: 'right', render: (p) => fmtKg(p.qty_produced_kg) },
             { header: 'L savaitė', render: (p) => <Badge tone="amber">{p.l_week?.code}</Badge> },
+            { header: 'Savikaina €', align: 'right', render: (p) => costText(fmtEur(p.cost_eur), p.cost_complete) },
+            { header: '€/kg', align: 'right', render: (p) => costText(fmtUnitEur(p.cost_per_kg_eur), p.cost_complete) },
             { header: 'Būsena', render: (p) => p.is_locked ? <Badge tone="green">Įspajamota</Badge> : <Badge>Dokumentas</Badge> },
             { header: '', render: (p) => (
               <span className="flex justify-end gap-1 whitespace-nowrap">
@@ -122,16 +128,22 @@ export default function ProductionsPage() {
               {detail.usages.map((u) => (
                 <li key={u.id} className="flex justify-between py-0.5">
                   <span>{u.raw_material?.name} ← {u.material_batch?.batch_number ?? (isShortage(u) ? <Badge tone="red">TRŪKSTA</Badge> : <Badge>be partijos</Badge>)}</span>
-                  <span className="tabular-nums">{fmtKg(u.qty_kg)} kg</span>
+                  <span className="tabular-nums">
+                    {fmtKg(u.qty_kg)} kg
+                    {u.material_batch?.unit_cost_eur != null && ` × ${fmtUnitEur(u.material_batch.unit_cost_eur)} € = ${fmtEur(u.qty_kg * u.material_batch.unit_cost_eur)} €`}
+                  </span>
                 </li>
               ))}
             </ul>
+            <p className="mt-1 text-right font-medium">
+              Savikaina: {costText(`${fmtEur(detail.cost_eur)} €`, detail.cost_complete)} · {fmtUnitEur(detail.cost_per_kg_eur)} €/kg
+            </p>
           </div>
         )}
       </Card>
 
-      <div className="grid gap-6 content-start">
-        <Card title="Registruoti gamybą">
+      <div className="grid gap-6 content-start no-print">
+        <Card title="Registruoti gamybą" noPrint>
           <p className="mb-3 text-xs text-stone-500">Žaliavų sunaudojimas bus paskaičiuotas automatiškai pagal galiojančią receptūrą (FIFO).</p>
           <form onSubmit={submit} className="grid gap-3">
             <Field label="Data"><input type="date" className={inputCls} value={f.production_date} onChange={(e) => setF({ ...f, production_date: e.target.value })} required /></Field>

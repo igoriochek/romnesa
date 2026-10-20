@@ -50,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => 720, // min. (12 val.) - ir senesniems žetonams be expires_at
 
     /*
     |--------------------------------------------------------------------------

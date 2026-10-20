@@ -81,7 +81,7 @@ export default function MovementsPage() {
   const set = (k: string, v: string) => setF({ ...f, [k]: v })
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px] print-grid-1">
       <Card
         title="Judėjimų žurnalas"
         actions={
@@ -117,7 +117,7 @@ export default function MovementsPage() {
         />
       </Card>
 
-      <Card title="Registruoti judėjimą">
+      <Card title="Registruoti judėjimą" noPrint>
         <form onSubmit={submit} className="grid gap-3">
           <Field label="Data"><input type="date" className={inputCls} value={f.movement_date} onChange={(e) => set('movement_date', e.target.value)} required /></Field>
           <Field label="Tipas">

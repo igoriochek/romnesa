@@ -49,6 +49,14 @@ class AppServiceProvider extends ServiceProvider
                 ],
                 'deleted' => ['deleted' => $model->getOriginal()],
             };
+            // Paslėpti laukai (slaptažodžio hash, remember_token) į istoriją nepatenka
+            $hidden = array_flip($model->getHidden());
+            $data = array_diff_key($data, $hidden);
+            foreach (['_old', 'deleted'] as $nested) {
+                if (isset($data[$nested])) {
+                    $data[$nested] = array_diff_key($data[$nested], $hidden);
+                }
+            }
             Audit::write($model, $action, $data);
         };
 

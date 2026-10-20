@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ProductionController;
 use App\Http\Controllers\Api\RecipeController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TraceabilityController;
+use App\Http\Controllers\Api\WriteoffActController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -36,10 +37,11 @@ Route::get('/health', function () {
 Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
 // Visa kita - tik prisijungusiems
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'password.changed'])->group(function () {
 
 Route::get('user', [AuthController::class, 'me']);
 Route::post('logout', [AuthController::class, 'logout']);
+Route::post('change-password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
 
 // ---- Klasifikatoriai (paprasčiausi CRUD) ----
 Route::apiResource('raw-materials', CrudController::class)->parameters(['raw-materials' => 'id']);
@@ -58,6 +60,7 @@ Route::post('recipes', [RecipeController::class, 'store']);
 // ---- Žaliavų apskaita ----
 Route::get('material-batches', [MaterialBatchController::class, 'index']);
 Route::post('material-batches', [MaterialBatchController::class, 'store']);
+Route::put('material-batches/{id}', [MaterialBatchController::class, 'update']);    // taisymas (pvz. vėliau įvesta savikaina)
 Route::get('material-batches/{id}', [MaterialBatchController::class, 'show']);
 Route::post('material-batches/{id}/lock', [MaterialBatchController::class, 'lock']);      // įspajamojimas
 Route::delete('material-batches/{id}', [MaterialBatchController::class, 'destroy']);
@@ -75,6 +78,13 @@ Route::post('material-outflows', [OutflowController::class, 'store']);
 Route::post('material-outflows/{id}/lock', [OutflowController::class, 'lock']);
 Route::delete('material-outflows/{id}', [OutflowController::class, 'destroy']);
 
+// ---- Žaliavų nurašymo aktai ----
+Route::get('writeoff-acts', [WriteoffActController::class, 'index']);
+Route::post('writeoff-acts', [WriteoffActController::class, 'store']);
+Route::get('writeoff-acts/{id}', [WriteoffActController::class, 'show']);
+Route::post('writeoff-acts/{id}/lock', [WriteoffActController::class, 'lock']);
+Route::delete('writeoff-acts/{id}', [WriteoffActController::class, 'destroy']);
+
 // ---- Produkto judėjimai ----
 Route::get('product-movements', [MovementController::class, 'index']);
 Route::post('product-movements', [MovementController::class, 'store']);
@@ -91,6 +101,8 @@ Route::get('traceability/l-week/{code}', [TraceabilityController::class, 'lWeek'
 // ---- Ataskaitos (Excel suvestinės) ----
 Route::get('reports/dashboard', [ReportController::class, 'dashboard']);
 Route::get('reports/batch-balances', [ReportController::class, 'batchBalances']);
+Route::get('reports/batches', [ReportController::class, 'batches']);   // partijų / likučių ataskaita
+Route::get('reports/usage', [ReportController::class, 'usage']);       // sunaudojimo ataskaita
 Route::get('reports/warehouse-stock', [ReportController::class, 'warehouseStock']);
 Route::get('reports/shipments', [ReportController::class, 'shipments']);
 

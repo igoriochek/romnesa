@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getDashboard, type DashboardData } from '../api'
-import { Badge, Card, Err, Table, fmtKg } from '../ui'
+import { Badge, Card, Err, Table, fmtEur, fmtKg } from '../ui'
 
 const REFRESH_MS = 30_000 // suvestinė skaičiuojama realiu laiku - atnaujinama automatiškai
 
@@ -25,6 +25,7 @@ export default function Dashboard() {
     { label: 'Aktyvios partijos', value: data.batches_active },
     { label: 'Pasibaigusios su likučiu', value: data.batches_expired },
     { label: 'Išvežta parduotuvėms', value: `${fmtKg(data.shipped_kg)} kg` },
+    { label: 'Žaliavų likučio vertė', value: `${fmtEur(data.stock_value_eur)} €` },
   ]
 
   return (
@@ -33,7 +34,7 @@ export default function Dashboard() {
         Atnaujinta {new Date(data.updated_at).toLocaleTimeString('lt-LT')} · kas {REFRESH_MS / 1000} s
         {err && <span className="text-red-600"> · {err}</span>}
       </p>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         {kpis.map((k) => (
           <div key={k.label} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-stone-200">
             <p className="text-xs text-stone-500">{k.label}</p>
@@ -50,6 +51,11 @@ export default function Dashboard() {
             { header: 'Sunaudota', align: 'right', render: (m) => fmtKg(m.used_kg) },
             { header: 'Perduota', align: 'right', render: (m) => fmtKg(m.outflow_kg) },
             { header: 'Likutis', align: 'right', render: (m) => <b>{fmtKg(m.balance_kg)}</b> },
+            { header: 'Likučio vertė €', align: 'right', render: (m) => (
+                <span title={m.value_complete ? undefined : 'Dalis likučio be savikainos'}>
+                  {fmtEur(m.balance_value_eur)}{!m.value_complete && ' *'}
+                </span>
+              ) },
             { header: 'Pasibaigęs likutis', align: 'right', render: (m) => (
                 m.expired_kg > 0.001 ? <Badge tone="red">{fmtKg(m.expired_kg)}</Badge> : '—'
               ) },

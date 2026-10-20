@@ -59,10 +59,16 @@ api.interceptors.request.use(async (config) => {
   return config
 })
 
+// Serveris reikalauja pakeisti numatytąjį slaptažodį - App parodo keitimo langą
+export const PASSWORD_CHANGE_EVENT = 'romnesa:password-change-required'
+
 api.interceptors.response.use(undefined, async (error) => {
   if (error?.response?.status === 401 && getToken()) {
     setToken(null)
     window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+  }
+  if (error?.response?.status === 403 && error.response.data?.code === 'password_change_required') {
+    window.dispatchEvent(new Event(PASSWORD_CHANGE_EVENT))
   }
   return Promise.reject(error)
 })
@@ -162,6 +168,7 @@ export interface MaterialBatch {
   raw_material_id: number
   batch_number: string
   qty_received_kg: number
+  unit_cost_eur: number | null  // savikaina, EUR/kg
   supplier: string | null
   invoice_number: string | null
   expiry_date: string
@@ -171,6 +178,8 @@ export interface MaterialBatch {
   used_kg?: number
   outflow_kg?: number
   days_to_expiry?: number
+  total_cost_eur?: number | null     // gauta kg × savikaina
+  balance_value_eur?: number | null  // likutis kg × savikaina
   raw_material?: RawMaterial
   usages?: MaterialUsage[]      // tik GET /material-batches/{id}
   outflows?: MaterialOutflow[]  // tik GET /material-batches/{id}
@@ -186,6 +195,9 @@ export interface Production {
   recipe_id: number | null
   notes: string | null
   is_locked?: boolean
+  cost_eur?: number           // žaliavų savikaina
+  cost_per_kg_eur?: number | null
+  cost_complete?: boolean     // false - ne visoms partijoms nurodyta savikaina
   production_product?: ProductionProduct
   l_week?: LWeek
   usages?: MaterialUsage[]
@@ -208,12 +220,44 @@ export interface MaterialOutflow {
   material_batch_id: number
   qty_kg: number
   outflow_type: 'transfer' | 'writeoff'
+  reason: WriteoffReason | null
+  writeoff_act_id: number | null
   destination: string | null
   document_number: string | null
   notes: string | null
   is_locked?: boolean
+  value_eur?: number | null   // kg × partijos savikaina
   material_batch?: MaterialBatch
+  writeoff_act?: { id: number; act_number: string } | null
 }
+
+// Nurašymo priežastys (backend MaterialOutflow::REASONS)
+export const WRITEOFF_REASONS = {
+  expired: 'Pasibaigęs galiojimas',
+  damaged: 'Sugadinta / nekokybiška',
+  inventory: 'Inventorizacijos skirtumas',
+  other: 'Kita',
+} as const
+export type WriteoffReason = keyof typeof WRITEOFF_REASONS
+
+export interface WriteoffAct {
+  id: number
+  act_number: string
+  act_date: string
+  compiled_by: string | null
+  approved_by: string | null
+  notes: string | null
+  is_locked: boolean
+  total_kg: number
+  total_value_eur: number
+  value_complete: boolean
+  lines?: number
+  outflows?: MaterialOutflow[]   // tik GET /writeoff-acts/{id}
+}
+
+export const getWriteoffActs = () => api.get<WriteoffAct[]>('/writeoff-acts')
+export const getWriteoffAct = (id: number) => api.get<WriteoffAct>(`/writeoff-acts/${id}`)
+export const createWriteoffAct = (data: object) => api.post<WriteoffAct>('/writeoff-acts', data)
 
 export interface ProductMovement {
   id: number
@@ -258,6 +302,8 @@ export interface MaterialSummaryRow {
   outflow_kg: number
   balance_kg: number
   expired_kg: number
+  balance_value_eur: number
+  value_complete: boolean
 }
 
 export interface DashboardData {
@@ -269,6 +315,7 @@ export interface DashboardData {
   expiring_soon: MaterialBatch[]
   shortages: MaterialUsage[]
   materials: MaterialSummaryRow[]
+  stock_value_eur: number
   updated_at: string
 }
 
@@ -300,7 +347,11 @@ export interface User {
   name: string
   username: string
   role: string
+  must_change_password?: boolean
 }
+
+export const changePassword = (data: { current_password: string; password: string; password_confirmation: string }) =>
+  api.post<User>('/change-password', data)
 
 export const login = async (username: string, password: string): Promise<User> => {
   const res = await api.post<{ token: string; user: User }>('/login', { username, password })
@@ -333,10 +384,12 @@ export const createClassifier = (resource: string, data: object) => api.post(`/$
 export const getBatches = () => api.get<Paginated<MaterialBatch>>('/material-batches')
 export const getBatch = (id: number) => api.get<MaterialBatch>(`/material-batches/${id}`)
 export const createBatch = (data: object) => api.post<MaterialBatch>('/material-batches', data)
+export const updateBatch = (id: number, data: object) => api.put<MaterialBatch>(`/material-batches/${id}`, data)
 export const getProductions = () => api.get<Paginated<Production>>('/productions')
 export const getProduction = (id: number) => api.get<Production>(`/productions/${id}`)
 export const createProduction = (data: object) => api.post<Production>('/productions', data)
-export const getOutflows = () => api.get<Paginated<MaterialOutflow>>('/material-outflows')
+export const getOutflows = (params?: { type?: 'transfer' | 'writeoff'; unassigned?: 1 }) =>
+  api.get<Paginated<MaterialOutflow>>('/material-outflows', { params })
 export const createOutflow = (data: object) => api.post<MaterialOutflow>('/material-outflows', data)
 
 // ---- Produkto judėjimai ----
@@ -350,6 +403,10 @@ export const traceLWeek = (code: string) => api.get<TraceLWeekResult>(`/traceabi
 
 // ---- Ataskaitos ----
 export const getDashboard = () => api.get<DashboardData>('/reports/dashboard')
+export interface ReportFilter { from?: string; to?: string; raw_material_id?: number; only_balance?: 1 }
+export const getBatchReport = (params: ReportFilter) => api.get<MaterialBatch[]>('/reports/batches', { params })
+export const getUsageReport = (params: ReportFilter) =>
+  api.get<(MaterialUsage & { unit_cost_eur: number | null; value_eur: number | null })[]>('/reports/usage', { params })
 export const getWarehouseStock = () => api.get<WarehouseStockRow[]>('/reports/warehouse-stock')
 export const getShipments = () => api.get<{ shop: string; qty_units: number; qty_kg: number; shipments: number }[]>('/reports/shipments')
 export const suggestPack = (weightKg: number) =>

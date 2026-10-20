@@ -1,1 +1,29 @@
 @import 'tailwindcss';
+
+/*
+ * Spausdinimas ir PDF eksportas (viršutinės juostos „Spausdinti" / „Eksportuoti PDF").
+ * .no-print - nespausdinama (navigacija, formos, mygtukai), .print-only - tik dokumente (antraštė).
+ * .pdf-export klasė uždedama #print-area laikinai, kol daroma PDF nuotrauka.
+ */
+.print-only { display: none; }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: white !important; }
+  .no-print, button, nav, header { display: none !important; }
+  .print-only { display: block; }
+  main { max-width: none !important; padding: 0 !important; }
+  section { box-shadow: none !important; break-inside: auto; }
+  tr, li { break-inside: avoid; }
+  .overflow-x-auto { overflow: visible !important; }
+  .print-grid-1 { display: block !important; }
+  .print-grid-1 > * { margin-bottom: 16px; }
+}
+
+.pdf-export { background: white; padding: 16px; }
+.pdf-export .no-print, .pdf-export button { display: none !important; }
+.pdf-export .print-only { display: block; }
+.pdf-export .overflow-x-auto { overflow: visible !important; }
+.pdf-export section { box-shadow: none !important; }
+.pdf-export .print-grid-1 { display: block !important; }
+.pdf-export .print-grid-1 > * { margin-bottom: 16px; }

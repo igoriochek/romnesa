@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
 
-export function Card({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
+/** noPrint - formos ir pan., kurių nereikia spausdinant / eksportuojant į PDF. */
+export function Card({ title, children, actions, noPrint }: { title: string; children: ReactNode; actions?: ReactNode; noPrint?: boolean }) {
   return (
-    <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200">
+    <section className={`rounded-xl bg-white p-5 shadow-sm ring-1 ring-stone-200 ${noPrint ? 'no-print' : ''}`}>
       <div className="mb-3 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">{title}</h2>
         {actions}
@@ -75,6 +76,8 @@ export function Err({ msg }: { msg: string | null }) {
   return <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{msg}</p>
 }
 
+export const smallBtnCls = 'rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100'
+
 export const btnCls =
   'rounded-lg bg-amber-800 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50'
 
@@ -82,3 +85,6 @@ export const fmtDate = (iso?: string | null) => (iso ? iso.slice(0, 10) : '—')
 // Šiandienos data vietos laiku (toISOString() duotų UTC - po vidurnakčio LT būtų vakar)
 export const todayIso = () => new Date().toLocaleDateString('sv-SE')
 export const fmtKg = (n?: number | null) => (n == null ? '—' : Number(n).toFixed(3).replace(/\.?0+$/, ''))
+// Suma eurais (2 sk. po kablelio); vieneto kaina - iki 4, bet ne mažiau 2
+export const fmtEur = (n?: number | null) => (n == null ? '—' : Number(n).toFixed(2))
+export const fmtUnitEur = (n?: number | null) => (n == null ? '—' : Number(n).toFixed(4).replace(/(\.\d\d\d*?)0+$/, '$1'))

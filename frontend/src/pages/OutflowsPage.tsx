@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, type MaterialBatch, type MaterialOutflow } from '../api'
-import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls, todayIso } from '../ui'
+import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, WRITEOFF_REASONS, type MaterialBatch, type MaterialOutflow, type WriteoffReason } from '../api'
+import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtEur, fmtKg, inputCls, todayIso } from '../ui'
 
 export default function OutflowsPage() {
   const [rows, setRows] = useState<MaterialOutflow[]>([])
@@ -9,7 +9,7 @@ export default function OutflowsPage() {
   const [busy, setBusy] = useState(false)
   const [f, setF] = useState({
     outflow_date: todayIso(),
-    material_batch_id: '', qty_kg: '', outflow_type: 'transfer',
+    material_batch_id: '', qty_kg: '', outflow_type: 'transfer', reason: '' as WriteoffReason | '',
     destination: '', document_number: '', notes: '',
   })
 
@@ -26,7 +26,7 @@ export default function OutflowsPage() {
     e.preventDefault()
     setBusy(true); setErr(null)
     try {
-      await createOutflow({ ...f, material_batch_id: +f.material_batch_id, qty_kg: +f.qty_kg })
+      await createOutflow({ ...f, material_batch_id: +f.material_batch_id, qty_kg: +f.qty_kg, reason: f.outflow_type === 'writeoff' ? f.reason : null })
       setF({ ...f, qty_kg: '', document_number: '', notes: '' })
       await load()
       const r = await getBatches()
@@ -44,7 +44,7 @@ export default function OutflowsPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px] print-grid-1">
       <Card title="Žaliavų perdavimai / nurašymai">
         <Table
           cols={[
@@ -57,8 +57,10 @@ export default function OutflowsPage() {
             { header: 'Partija', render: (o) => o.material_batch?.batch_number },
             { header: 'Žaliava', render: (o) => o.material_batch?.raw_material?.name },
             { header: 'Kg', align: 'right', render: (o) => fmtKg(o.qty_kg) },
-            { header: 'Kam / priežastis', render: (o) => o.destination ?? '—' },
+            { header: 'Vertė €', align: 'right', render: (o) => fmtEur(o.value_eur) },
+            { header: 'Kam / priežastis', render: (o) => [o.reason ? WRITEOFF_REASONS[o.reason] : null, o.destination].filter(Boolean).join(' · ') || '—' },
             { header: 'Dok.', render: (o) => o.document_number ?? '—' },
+            { header: 'Aktas', render: (o) => o.writeoff_act ? <Badge tone="red">{o.writeoff_act.act_number}</Badge> : '—' },
             { header: '', render: (o) => (
               <span className="flex justify-end gap-1 whitespace-nowrap">
                 {o.is_locked && <Badge tone="green">Įspajamota</Badge>}
@@ -71,7 +73,7 @@ export default function OutflowsPage() {
         />
       </Card>
 
-      <Card title="Registruoti perdavimą">
+      <Card title="Registruoti perdavimą / nurašymą" noPrint>
         <form onSubmit={submit} className="grid gap-3">
           <Field label="Data"><input type="date" className={inputCls} value={f.outflow_date} onChange={(e) => setF({ ...f, outflow_date: e.target.value })} required /></Field>
           <Field label="Partija">
@@ -92,7 +94,15 @@ export default function OutflowsPage() {
               <option value="writeoff">Nurašymas</option>
             </select>
           </Field>
-          <Field label="Kam / priežastis"><input className={inputCls} value={f.destination} onChange={(e) => setF({ ...f, destination: e.target.value })} placeholder="Cechas arba priežastis" /></Field>
+          {f.outflow_type === 'writeoff' && (
+            <Field label="Nurašymo priežastis">
+              <select className={inputCls} value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value as WriteoffReason })} required>
+                <option value="">— pasirinkite —</option>
+                {Object.entries(WRITEOFF_REASONS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </Field>
+          )}
+          <Field label={f.outflow_type === 'writeoff' ? 'Paaiškinimas' : 'Kam (cechas)'}><input className={inputCls} value={f.destination} onChange={(e) => setF({ ...f, destination: e.target.value })} placeholder="Cechas arba priežastis" /></Field>
           <Field label="Dok. Nr."><input className={inputCls} value={f.document_number} onChange={(e) => setF({ ...f, document_number: e.target.value })} /></Field>
           <button className={btnCls} disabled={busy}>{busy ? 'Saugoma…' : 'Registruoti'}</button>
           <Err msg={err} />

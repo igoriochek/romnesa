@@ -35,13 +35,20 @@ class MaterialStockService
         ];
     }
 
-    /** Partijai priskiria likučio laukus (balance_kg, used_kg, outflow_kg, days_to_expiry). */
+    /**
+     * Partijai priskiria likučio laukus (balance_kg, used_kg, outflow_kg, days_to_expiry)
+     * ir vertes pagal savikainą (total_cost_eur, balance_value_eur; null - savikaina nenurodyta).
+     */
     public function withTotals(MaterialBatch $batch): MaterialBatch
     {
         foreach ($this->batchTotals($batch) as $key => $value) {
             $batch->{$key} = $value;
         }
         $batch->days_to_expiry = $batch->daysToExpiry();
+
+        $unit = $batch->unit_cost_eur;
+        $batch->total_cost_eur    = $unit === null ? null : round((float) $batch->qty_received_kg * (float) $unit, 2);
+        $batch->balance_value_eur = $unit === null ? null : round($batch->balance_kg * (float) $unit, 2);
 
         return $batch;
     }

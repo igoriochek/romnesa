@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { api, AUTH_EXPIRED_EVENT, getHealth, getMe, getToken, logout, type HealthResponse, type User } from './api'
+import { api, AUTH_EXPIRED_EVENT, PASSWORD_CHANGE_EVENT, getHealth, getMe, getToken, logout, type HealthResponse, type User } from './api'
+import { PRINT_AREA_ID, exportPdf, printPage } from './print'
 import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import BatchesPage from './pages/BatchesPage'
@@ -10,6 +11,9 @@ import TraceabilityPage from './pages/TraceabilityPage'
 import ClassifiersPage from './pages/ClassifiersPage'
 import HistoryPage from './pages/HistoryPage'
 import WarehouseStockCard from './pages/StockPage'
+import ReportsPage from './pages/ReportsPage'
+import WriteoffActsPage from './pages/WriteoffActsPage'
+import ChangePasswordForm from './pages/ChangePasswordForm'
 
 const TABS = [
   { id: 'dash', label: 'Suvestinė' },
@@ -17,13 +21,17 @@ const TABS = [
   { id: 'production', label: 'Gamyba' },
   { id: 'movements', label: 'Judėjimai' },
   { id: 'outflows', label: 'Perdavimai' },
+  { id: 'acts', label: 'Nurašymo aktai' },
   { id: 'trace', label: 'Atsekamumas' },
   { id: 'stock', label: 'Likučiai' },
+  { id: 'reports', label: 'Ataskaitos' },
   { id: 'history', label: 'Istorija' },
   { id: 'classifiers', label: 'Klasifikatoriai' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
+
+const topBtn = 'rounded-lg bg-amber-50/10 px-3 py-1 text-sm font-medium text-amber-50 hover:bg-amber-50/20 disabled:opacity-50'
 
 function App() {
   // undefined = tikrinama, null = neprisijungta
@@ -32,18 +40,45 @@ function App() {
   useEffect(() => {
     if (getToken()) getMe().then((res) => setUser(res.data), () => setUser(null))
     const expired = () => setUser(null)
+    // serveris atsisakė vykdyti, kol nepakeistas numatytasis slaptažodis
+    const mustChange = () => setUser((u) => (u ? { ...u, must_change_password: true } : u))
     window.addEventListener(AUTH_EXPIRED_EVENT, expired)
-    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, expired)
+    window.addEventListener(PASSWORD_CHANGE_EVENT, mustChange)
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, expired)
+      window.removeEventListener(PASSWORD_CHANGE_EVENT, mustChange)
+    }
   }, [])
 
   if (user === undefined) return <div className="min-h-screen bg-stone-100" />
   if (user === null) return <LoginPage onLogin={setUser} />
 
-  return <Shell user={user} onLogout={() => logout().finally(() => setUser(null))} />
+  const doLogout = () => logout().finally(() => setUser(null))
+
+  if (user.must_change_password) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-stone-100 px-4">
+        <ChangePasswordForm forced onDone={setUser} />
+        <button className="text-sm text-stone-500 hover:text-stone-800" onClick={doLogout}>Atsijungti</button>
+      </div>
+    )
+  }
+
+  return <Shell user={user} onUser={setUser} onLogout={doLogout} />
 }
 
-function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
+function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => void; onLogout: () => void }) {
   const [tab, setTab] = useState<TabId>('dash')
+  const [pwOpen, setPwOpen] = useState(false)
+  const [pdfBusy, setPdfBusy] = useState(false)
+  const tabLabel = TABS.find((t) => t.id === tab)?.label ?? ''
+
+  const doPdf = async () => {
+    setPdfBusy(true)
+    try { await exportPdf(`Romnesa_${tabLabel.replace(/s+/g, '_')}_${new Date().toLocaleDateString('sv-SE')}`) }
+    catch { window.alert('Nepavyko sukurti PDF. Bandykite „Spausdinti“ → „Išsaugoti kaip PDF“.') }
+    finally { setPdfBusy(false) }
+  }
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,9 +93,9 @@ function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-stone-100 text-stone-800">
       <header className="bg-amber-900 px-6 py-4 text-amber-50 shadow">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold tracking-tight">UAB Romnesa — Šakočių apskaita</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className={`rounded-full px-3 py-1 text-sm font-medium ${
                 connected ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
@@ -68,11 +103,11 @@ function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
             >
               {connected ? 'API prisijungta' : error ?? 'Jungiamasi…'}
             </span>
+            <button onClick={printPage} className={topBtn}>Spausdinti</button>
+            <button onClick={doPdf} disabled={pdfBusy} className={topBtn}>{pdfBusy ? 'Ruošiama…' : 'Eksportuoti PDF'}</button>
             <span className="text-sm text-amber-100">{user.name}</span>
-            <button
-              onClick={onLogout}
-              className="rounded-lg bg-amber-50/10 px-3 py-1 text-sm font-medium text-amber-50 hover:bg-amber-50/20"
-            >
+            <button onClick={() => setPwOpen(true)} className={topBtn} title="Keisti slaptažodį">Slaptažodis</button>
+            <button onClick={onLogout} className={topBtn}>
               Atsijungti
             </button>
           </div>
@@ -97,17 +132,34 @@ function Shell({ user, onLogout }: { user: User; onLogout: () => void }) {
         </div>
       </nav>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main id={PRINT_AREA_ID} className="mx-auto max-w-7xl px-6 py-8">
+        {tab !== 'acts' && tab !== 'reports' && (
+          <div className="print-only mb-4 border-b border-stone-300 pb-2">
+            <p className="text-xs text-stone-600">UAB „Romnesa“ · Šakočių apskaita</p>
+            <h2 className="text-lg font-bold">{tabLabel}</h2>
+            <p className="text-xs text-stone-600">Spausdinta {new Date().toLocaleString('lt-LT')} · {user.name}</p>
+          </div>
+        )}
         {tab === 'dash' && <Dashboard />}
         {tab === 'batches' && <BatchesPage />}
         {tab === 'production' && <ProductionsPage />}
         {tab === 'movements' && <MovementsPage />}
         {tab === 'outflows' && <OutflowsPage />}
+        {tab === 'acts' && <WriteoffActsPage />}
         {tab === 'trace' && <TraceabilityPage />}
         {tab === 'stock' && <WarehouseStockCard />}
+        {tab === 'reports' && <ReportsPage />}
         {tab === 'history' && <HistoryPage />}
         {tab === 'classifiers' && <ClassifiersPage />}
       </main>
+
+      {pwOpen && (
+        <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setPwOpen(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <ChangePasswordForm onDone={(u) => { onUser(u); setPwOpen(false); window.alert('Slaptažodis pakeistas.') }} onCancel={() => setPwOpen(false)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -24,11 +24,16 @@ class ProductionController extends Controller
 
     public function index()
     {
-        return Production::with(['productionProduct', 'lWeek', 'recipe'])
+        $productions = Production::with(['productionProduct', 'lWeek', 'recipe', 'usages.materialBatch', 'usages.rawMaterial'])
             ->withCount('usages')
             ->orderByDesc('production_date')
             ->orderByDesc('id')
             ->paginate(50);
+
+        // usages reikalingi tik savikainai - į sąrašo atsakymą jų nededame
+        $productions->getCollection()->transform(fn ($p) => $p->withCost()->makeHidden('usages'));
+
+        return $productions;
     }
 
     public function show(int $id)
@@ -36,7 +41,7 @@ class ProductionController extends Controller
         return Production::with([
             'productionProduct', 'lWeek', 'recipe.items.rawMaterial',
             'usages.rawMaterial', 'usages.materialBatch',
-        ])->findOrFail($id);
+        ])->findOrFail($id)->withCost();
     }
 
     public function store(Request $request)
