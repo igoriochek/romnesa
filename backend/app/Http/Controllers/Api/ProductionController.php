@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\MaterialUsage;
 use App\Models\Production;
 use App\Models\ProductionProduct;
-use App\Models\Recipe;
+use App\Services\CostService;
 use App\Services\MaterialStockService;
+use App\Services\ProductionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -20,15 +20,20 @@ use Illuminate\Support\Facades\DB;
  */
 class ProductionController extends Controller
 {
-    public function __construct(private MaterialStockService $stock) {}
+    public function __construct(
+        private MaterialStockService $stock,
+        private ProductionService $productions,
+    ) {}
 
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = min(max((int) $request->query('per_page', 50), 1), 500);
+
         $productions = Production::with(['productionProduct', 'lWeek', 'recipe', 'usages.materialBatch', 'usages.rawMaterial'])
             ->withCount('usages')
             ->orderByDesc('production_date')
             ->orderByDesc('id')
-            ->paginate(50);
+            ->paginate($perPage);
 
         // usages reikalingi tik savikainai - į sąrašo atsakymą jų nededame
         $productions->getCollection()->transform(fn ($p) => $p->withCost()->makeHidden('usages'));
@@ -41,7 +46,7 @@ class ProductionController extends Controller
         return Production::with([
             'productionProduct', 'lWeek', 'recipe.items.rawMaterial',
             'usages.rawMaterial', 'usages.materialBatch',
-        ])->findOrFail($id)->withCost();
+        ])->findOrFail($id)->withCost(details: true);
     }
 
     public function store(Request $request)
@@ -52,9 +57,16 @@ class ProductionController extends Controller
             'qty_produced_kg'       => 'required|numeric|gt:0',
             'l_week_id'             => 'required|exists:l_weeks,id',
             'notes'                 => 'nullable|string|max:255',
+            // Neprivaloma: vartotojo pakeistas planas (žaliava -> partijos). Nenurodytoms žaliavoms - FIFO.
+            'allocations'                        => 'nullable|array',
+            'allocations.*.raw_material_id'      => 'required|integer',
+            'allocations.*.material_batch_id'    => 'required|integer',
+            'allocations.*.qty_kg'               => 'required|numeric|min:0',
         ]);
+        $manual = collect($data['allocations'] ?? [])->groupBy('raw_material_id');
+        unset($data['allocations']);
 
-        $recipe = $this->resolveRecipe($data['production_product_id'], $data['production_date'], $data['l_week_id']);
+        $recipe = $this->productions->resolveRecipe($data['production_product_id'], $data['production_date'], $data['l_week_id']);
 
         if (! $recipe) {
             return response()->json([
@@ -62,34 +74,7 @@ class ProductionController extends Controller
             ], 422);
         }
 
-        $production = DB::transaction(function () use ($data, $recipe, $request) {
-            $production = Production::create([
-                ...$data,
-                'recipe_id'   => $recipe->id,
-                'employee_id' => $request->user()?->id,
-            ]);
-
-            foreach ($recipe->items as $item) {
-                $needed = round($item->qty_kg_per_kg * $production->qty_produced_kg, 3);
-                if ($needed <= 0) {
-                    continue;
-                }
-                $allocations = $item->rawMaterial->requires_batch
-                    ? $this->stock->allocateFifo($item->raw_material_id, $needed, $production->production_date->toDateString())
-                    : [['batch_id' => null, 'qty_kg' => $needed]];
-
-                foreach ($allocations as $a) {
-                    MaterialUsage::create([
-                        'production_id'     => $production->id,
-                        'raw_material_id'   => $item->raw_material_id,
-                        'material_batch_id' => $a['batch_id'],
-                        'qty_kg'            => $a['qty_kg'],
-                    ]);
-                }
-            }
-
-            return $production;
-        });
+        $production = $this->productions->create($data, $recipe, $manual, $request->user()?->id);
 
         return response()->json(
             $production->load(['usages.rawMaterial', 'usages.materialBatch', 'recipe', 'lWeek']),
@@ -110,7 +95,7 @@ class ProductionController extends Controller
             'l_week_id'             => 'required|exists:l_weeks,id',
         ]);
 
-        $recipe = $this->resolveRecipe($data['production_product_id'], $data['production_date'], $data['l_week_id']);
+        $recipe = $this->productions->resolveRecipe($data['production_product_id'], $data['production_date'], $data['l_week_id']);
 
         if (! $recipe) {
             return response()->json([
@@ -120,17 +105,25 @@ class ProductionController extends Controller
 
         $plan = $recipe->items->map(function ($item) use ($data) {
             $needed = round($item->qty_kg_per_kg * $data['qty_produced_kg'], 3);
+            $withBatch = $needed > 0 && $item->rawMaterial->requires_batch;
             return [
                 'raw_material' => $item->rawMaterial,
                 'needed_kg'    => $needed,
-                'take'         => $needed > 0 && $item->rawMaterial->requires_batch
-                    ? $this->stock->plan($item->raw_material_id, $needed, $data['production_date'])
+                'take'         => $withBatch ? $this->stock->plan($item->raw_material_id, $needed, $data['production_date']) : [],
+                // visos tą dieną tinkamos partijos su likučiu - planą galima pakeisti rankiniu būdu
+                'options'      => $withBatch
+                    ? $this->stock->eligibleBatches($item->raw_material_id, $data['production_date'])
+                        ->map(fn ($b) => $this->stock->withTotals($b))
+                        ->filter(fn ($b) => $b->balance_kg > 0)
+                        ->values()
                     : [],
             ];
         });
 
         return [
             'recipe' => $recipe,
+            // normatyvinė žaliavų savikaina pagal orientacines kainas gamybos dienai
+            'recipe_cost' => app(CostService::class)->recipe($recipe, $data['production_date']),
             'plan'   => $plan,
             'shortage' => $plan->contains(
                 fn ($row) => collect($row['take'])->contains(fn ($a) => $a['batch'] === null)
@@ -149,10 +142,13 @@ class ProductionController extends Controller
             'l_week_id'       => 'nullable|integer',
         ]);
         $product = ProductionProduct::with(['packedProducts' => fn ($q) => $q->orderBy('weight_from_kg')])->findOrFail($id);
+        $date = $data['production_date'] ?? today('Europe/Vilnius')->toDateString();
+        $recipe = $this->productions->resolveRecipe($id, $date, (int) ($data['l_week_id'] ?? 0));
 
         return [
             'product'     => $product,
-            'recipe'      => $this->resolveRecipe($id, $data['production_date'] ?? today()->toDateString(), (int) ($data['l_week_id'] ?? 0)),
+            'recipe'      => $recipe,
+            'recipe_cost' => $recipe ? app(CostService::class)->recipe($recipe, $date) : null,
             'produced_kg' => (float) $product->productions()->sum('qty_produced_kg'),
             'recent'      => $product->productions()->with('lWeek')
                 ->orderByDesc('production_date')->orderByDesc('id')->limit(5)->get(),
@@ -178,17 +174,5 @@ class ProductionController extends Controller
             $production->delete();
         });
         return response()->noContent();
-    }
-
-    /** Galiojanti receptūros versija: L-partijai skirta > naujausia galiojanti versija. */
-    private function resolveRecipe(int $productId, string $date, int $lWeekId): ?Recipe
-    {
-        return Recipe::with('items.rawMaterial')
-            ->where('production_product_id', $productId)
-            ->where('valid_from', '<=', $date)
-            ->where(fn ($q) => $q->whereNull('valid_to')->orWhere('valid_to', '>=', $date))
-            ->orderByRaw('CASE WHEN applies_to_l_week_id = ? THEN 0 ELSE 1 END', [$lWeekId])
-            ->orderByDesc('version')
-            ->first();
     }
 }

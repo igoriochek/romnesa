@@ -11,9 +11,10 @@ import TraceabilityPage from './pages/TraceabilityPage'
 import ClassifiersPage from './pages/ClassifiersPage'
 import HistoryPage from './pages/HistoryPage'
 import WarehouseStockCard from './pages/StockPage'
-import ReportsPage from './pages/ReportsPage'
+import ReportsPage, { type ReportId, type ReportRequest } from './pages/ReportsPage'
 import WriteoffActsPage from './pages/WriteoffActsPage'
 import ChangePasswordForm from './pages/ChangePasswordForm'
+import { Dropdown, type IconName } from './ui'
 
 const TABS = [
   { id: 'dash', label: 'Suvestinė' },
@@ -31,7 +32,14 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
-const topBtn = 'rounded-lg bg-amber-50/10 px-3 py-1 text-sm font-medium text-amber-50 hover:bg-amber-50/20 disabled:opacity-50'
+// Viršutinės juostos meniu ataskaitos - Ataskaitų skirtukas jas suformuoja ir iškart spausdina / eksportuoja
+const MENU_REPORTS: { type: ReportId; label: string; icon: IconName }[] = [
+  { type: 'batches', label: 'Partijų sąrašas / gavimo žurnalas', icon: 'doc' },
+  { type: 'usage', label: 'Sunaudojimas', icon: 'doc' },
+  { type: 'cost', label: 'Gaminių savikaina', icon: 'chart' },
+  { type: 'balances', label: 'Likučiai', icon: 'doc' },
+  { type: 'trace', label: 'Atsekamumas', icon: 'route' },
+]
 
 function App() {
   // undefined = tikrinama, null = neprisijungta
@@ -50,14 +58,14 @@ function App() {
     }
   }, [])
 
-  if (user === undefined) return <div className="min-h-screen bg-stone-100" />
+  if (user === undefined) return <div className="min-h-screen bg-[#f6f3ef]" />
   if (user === null) return <LoginPage onLogin={setUser} />
 
   const doLogout = () => logout().finally(() => setUser(null))
 
   if (user.must_change_password) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-stone-100 px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#f6f3ef] px-4">
         <ChangePasswordForm forced onDone={setUser} />
         <button className="text-sm text-stone-500 hover:text-stone-800" onClick={doLogout}>Atsijungti</button>
       </div>
@@ -71,14 +79,27 @@ function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => vo
   const [tab, setTab] = useState<TabId>('dash')
   const [pwOpen, setPwOpen] = useState(false)
   const [pdfBusy, setPdfBusy] = useState(false)
+  const [reportReq, setReportReq] = useState<ReportRequest | null>(null)
   const tabLabel = TABS.find((t) => t.id === tab)?.label ?? ''
 
-  const doPdf = async () => {
+  const doPdf = async (label = tabLabel) => {
     setPdfBusy(true)
-    try { await exportPdf(`Romnesa_${tabLabel.replace(/s+/g, '_')}_${new Date().toLocaleDateString('sv-SE')}`) }
+    try { await exportPdf(`Romnesa_${label.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('sv-SE')}`) }
     catch { window.alert('Nepavyko sukurti PDF. Bandykite „Spausdinti“ → „Išsaugoti kaip PDF“.') }
     finally { setPdfBusy(false) }
   }
+
+  const openReport = (type: ReportId, action: 'print' | 'pdf') => {
+    setTab('reports')
+    setReportReq((r) => ({ type, action, n: (r?.n ?? 0) + 1 }))
+  }
+
+  const menu = (action: 'print' | 'pdf') => [
+    { label: 'Šis puslapis', icon: (action === 'print' ? 'printer' : 'pdf') as IconName, onClick: () => (action === 'print' ? printPage() : doPdf()) },
+    'sep' as const,
+    ...MENU_REPORTS.map((r) => ({ label: `${r.label}${action === 'pdf' ? ' (PDF)' : ''}`, icon: r.icon, onClick: () => openReport(r.type, action) })),
+  ]
+
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,39 +112,40 @@ function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => vo
   const connected = health !== null && error === null
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-800">
-      <header className="bg-amber-900 px-6 py-4 text-amber-50 shadow">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold tracking-tight">UAB Romnesa — Šakočių apskaita</h1>
-          <div className="flex flex-wrap items-center gap-2">
+    <div className="min-h-screen bg-[#f6f3ef] text-stone-800">
+      <header className="bg-[#7a3410] px-6 py-2.5 text-white shadow">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3">
+          <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight">
+            UAB „Romnesa“ — Šakočių apskaita
             <span
-              className={`rounded-full px-3 py-1 text-sm font-medium ${
-                connected ? 'bg-green-500/20 text-green-100' : 'bg-red-500/20 text-red-100'
-              }`}
-            >
-              {connected ? 'API prisijungta' : error ?? 'Jungiamasi…'}
-            </span>
-            <button onClick={printPage} className={topBtn}>Spausdinti</button>
-            <button onClick={doPdf} disabled={pdfBusy} className={topBtn}>{pdfBusy ? 'Ruošiama…' : 'Eksportuoti PDF'}</button>
-            <span className="text-sm text-amber-100">{user.name}</span>
-            <button onClick={() => setPwOpen(true)} className={topBtn} title="Keisti slaptažodį">Slaptažodis</button>
-            <button onClick={onLogout} className={topBtn}>
-              Atsijungti
-            </button>
+              title={connected ? 'API prisijungta' : error ?? 'Jungiamasi…'}
+              className={`h-2.5 w-2.5 rounded-full ${connected ? 'bg-green-400' : error ? 'bg-red-400' : 'bg-amber-300'}`}
+            />
+            {error && <span className="text-sm font-normal text-red-100">{error}</span>}
+          </h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <Dropdown label="Spausdinti" icon="printer" items={menu('print')} />
+            <Dropdown label={pdfBusy ? 'Ruošiama…' : 'Eksportuoti į PDF'} icon="pdf" items={menu('pdf')} disabled={pdfBusy} />
+            <Dropdown label="Nustatymai" icon="gear" items={[
+              { label: `${user.name} (${user.username})`, icon: 'user', onClick: () => setPwOpen(true) },
+              'sep',
+              { label: 'Keisti slaptažodį', icon: 'key', onClick: () => setPwOpen(true) },
+              { label: 'Atsijungti', icon: 'logout', onClick: onLogout },
+            ]} />
           </div>
         </div>
       </header>
 
-      <nav className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-6">
+      <nav className="border-b border-stone-200 bg-white shadow-sm">
+        <div className="mx-auto flex max-w-[1600px] gap-1 overflow-x-auto px-6">
           {TABS.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+              onClick={() => { setTab(t.id); setReportReq(null) }}
+              className={`border-b-[3px] px-5 py-3 text-[15px] whitespace-nowrap transition-colors ${
                 tab === t.id
-                  ? 'border-amber-700 text-amber-900'
-                  : 'border-transparent text-stone-500 hover:text-stone-800'
+                  ? 'border-amber-800 bg-amber-100/70 font-semibold text-stone-900'
+                  : 'border-transparent text-stone-700 hover:bg-stone-50 hover:text-stone-900'
               }`}
             >
               {t.label}
@@ -132,7 +154,7 @@ function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => vo
         </div>
       </nav>
 
-      <main id={PRINT_AREA_ID} className="mx-auto max-w-7xl px-6 py-8">
+      <main id={PRINT_AREA_ID} className="mx-auto max-w-[1600px] px-6 py-6">
         {tab !== 'acts' && tab !== 'reports' && (
           <div className="print-only mb-4 border-b border-stone-300 pb-2">
             <p className="text-xs text-stone-600">UAB „Romnesa“ · Šakočių apskaita</p>
@@ -148,7 +170,13 @@ function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => vo
         {tab === 'acts' && <WriteoffActsPage />}
         {tab === 'trace' && <TraceabilityPage />}
         {tab === 'stock' && <WarehouseStockCard />}
-        {tab === 'reports' && <ReportsPage />}
+        {tab === 'reports' && (
+          <ReportsPage
+            request={reportReq}
+            // palaukiam, kol React nupieš ataskaitą, tada spausdinam / darom PDF
+            onReady={(action, label) => setTimeout(() => (action === 'print' ? printPage() : doPdf(label)), 200)}
+          />
+        )}
         {tab === 'history' && <HistoryPage />}
         {tab === 'classifiers' && <ClassifiersPage />}
       </main>

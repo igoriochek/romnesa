@@ -43,7 +43,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <Card title="Žaliavos: gauta / sunaudota / perduota / likutis (kg)">
+      <Card icon="leaf" title="Žaliavos: gauta / sunaudota / perduota / likutis (kg)">
         <Table
           cols={[
             { header: 'Žaliava', render: (m) => m.raw_material },
@@ -66,7 +66,7 @@ export default function Dashboard() {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card title="Greitai baigsis galiojimas (≤14 d.)">
+        <Card icon="history" title="Greitai baigsis galiojimas (≤14 d.)">
           <Table
             cols={[
               { header: 'Partija', render: (b) => b.batch_number },
@@ -83,7 +83,7 @@ export default function Dashboard() {
           />
         </Card>
 
-        <Card title="Partijų trūkumai (TRŪKSTA)">
+        <Card icon="info" title="Partijų trūkumai (TRŪKSTA)">
           <Table
             cols={[
               { header: 'Gamyba', render: (u) => `#${u.production_id} · ${u.production?.l_week?.code ?? '—'}` },

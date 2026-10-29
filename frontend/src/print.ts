@@ -65,3 +65,25 @@ export async function exportPdf(fileName: string) {
     root.classList.remove('pdf-export')
   }
 }
+
+/** Atspausdina vieną elementą (pvz. partijos kortelę) atskirame rėmelyje su tais pačiais stiliais. */
+export function printElement(el: HTMLElement, title = document.title) {
+  const frame = document.createElement('iframe')
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'
+  document.body.appendChild(frame)
+  const doc = frame.contentDocument!
+  const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map((n) => n.outerHTML).join('')
+  doc.open()
+  // pavadinimas (partijos Nr. - vartotojo įvestas) nustatomas per doc.title, ne į HTML, kad nebūtų XSS
+  doc.write(`<!doctype html><html lang="lt"><head><meta charset="utf-8">${styles}</head><body style="background:#fff;padding:12mm">${el.outerHTML}</body></html>`)
+  doc.close()
+  doc.title = title
+  const go = () => {
+    frame.contentWindow!.focus()
+    frame.contentWindow!.print()
+    setTimeout(() => frame.remove(), 1000)
+  }
+  // laukiam, kol užsikraus išoriniai stiliai (build režime - <link>)
+  if (doc.readyState === 'complete') setTimeout(go, 150)
+  else frame.onload = go
+}

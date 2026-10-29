@@ -7,6 +7,7 @@ use App\Models\MaterialBatch;
 use App\Models\MaterialOutflow;
 use App\Services\MaterialStockService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
@@ -46,27 +47,30 @@ class OutflowController extends Controller
             $data['reason'] = null;
         }
 
-        $batch = MaterialBatch::findOrFail($data['material_batch_id']);
-
-        if ($batch->is_locked) {
-            return response()->json(['message' => 'Partija įspajamota (užrakinta) – perdavimas draudžiamas.'], 423);
-        }
-
-        $balance = $this->stock->batchBalance($batch);
-
-        if ($data['qty_kg'] > $balance) {
-            return response()->json([
-                'message' => "Partijos likutis nepakankamas (liko {$balance} kg).",
-                'balance_kg' => $balance,
-            ], 422);
-        }
-
         $data['created_by_id'] = $request->user()?->id;
 
-        return response()->json(
-            MaterialOutflow::create($data)->load('materialBatch.rawMaterial'),
-            201
-        );
+        // Partija užrakinama iki įrašymo - lygiagretus perdavimas / gamyba nepaims to paties likučio
+        return DB::transaction(function () use ($data) {
+            $batch = MaterialBatch::whereKey($data['material_batch_id'])->lockForUpdate()->firstOrFail();
+
+            if ($batch->is_locked) {
+                return response()->json(['message' => 'Partija įspajamota (užrakinta) – perdavimas draudžiamas.'], 423);
+            }
+
+            $balance = $this->stock->batchBalance($batch);
+
+            if ($data['qty_kg'] > $balance) {
+                return response()->json([
+                    'message' => "Partijos likutis nepakankamas (liko {$balance} kg).",
+                    'balance_kg' => $balance,
+                ], 422);
+            }
+
+            return response()->json(
+                MaterialOutflow::create($data)->load('materialBatch.rawMaterial'),
+                201
+            );
+        });
     }
 
     /** Įspajamojimas: užrakintas įrašas nebenaikinamas. */

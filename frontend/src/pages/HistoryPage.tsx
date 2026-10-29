@@ -10,7 +10,8 @@ const ACTIONS: Record<string, { label: string; tone: 'green' | 'amber' | 'red' |
   unlocked: { label: 'Atrakinta', tone: 'stone' },
 }
 
-const fmtTime = (iso: string) => iso.slice(0, 16).replace('T', ' ')
+// serveris grąžina UTC - rodome vietos laiku
+const fmtTime = (iso: string) => new Date(iso).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'short' })
 
 const KEY_FIELDS = ['batch_number', 'qty_received_kg', 'qty_produced_kg', 'qty_units', 'qty_kg', 'material_batch_id', 'production_id', 'name', 'code', 'movement_type', 'outflow_type']
 
@@ -51,6 +52,7 @@ export default function HistoryPage() {
   return (
     <Card
       title="Registracijų istorija"
+      icon="history"
       actions={
         <select className="rounded-lg border border-stone-300 px-2 py-1 text-sm" value={filter} onChange={(e) => { setP(1); setFilter(e.target.value) }}>
           <option value="">Viskas</option>
@@ -58,6 +60,7 @@ export default function HistoryPage() {
           <option value="Production">Gamyba</option>
           <option value="MaterialUsage">Sunaudojimai</option>
           <option value="MaterialOutflow">Perdavimai</option>
+          <option value="WriteoffAct">Nurašymo aktai</option>
           <option value="ProductMovement">Judėjimai</option>
           <option value="Recipe">Receptūros</option>
           <option value="RecipeItem">Receptūrų eilutės</option>

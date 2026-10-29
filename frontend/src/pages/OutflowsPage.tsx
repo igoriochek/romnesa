@@ -2,6 +2,9 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, WRITEOFF_REASONS, type MaterialBatch, type MaterialOutflow, type WriteoffReason } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtEur, fmtKg, inputCls, todayIso } from '../ui'
 
+// Perduoti / nurašyti galima tik iš neužrakintos partijos su likučiu (nebegaliojančią - nurašyti)
+const available = (b: MaterialBatch) => (b.balance_kg ?? 0) > 0 && !b.is_locked
+
 export default function OutflowsPage() {
   const [rows, setRows] = useState<MaterialOutflow[]>([])
   const [batches, setBatches] = useState<MaterialBatch[]>([])
@@ -17,7 +20,7 @@ export default function OutflowsPage() {
 
   useEffect(() => {
     load()
-    getBatches().then((r) => setBatches(r.data.data.filter((b) => (b.balance_kg ?? 0) > 0)))
+    getBatches().then((r) => setBatches(r.data.data.filter(available)))
   }, [])
 
   const selected = batches.find((b) => String(b.id) === f.material_batch_id)
@@ -30,7 +33,7 @@ export default function OutflowsPage() {
       setF({ ...f, qty_kg: '', document_number: '', notes: '' })
       await load()
       const r = await getBatches()
-      setBatches(r.data.data.filter((b) => (b.balance_kg ?? 0) > 0))
+      setBatches(r.data.data.filter(available))
     } catch (e2) { setErr(errText(e2)) } finally { setBusy(false) }
   }
 
@@ -45,7 +48,7 @@ export default function OutflowsPage() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px] print-grid-1">
-      <Card title="Žaliavų perdavimai / nurašymai">
+      <Card title="Žaliavų perdavimai / nurašymai" icon="route">
         <Table
           cols={[
             { header: 'Data', render: (o) => fmtDate(o.outflow_date) },
@@ -65,7 +68,7 @@ export default function OutflowsPage() {
               <span className="flex justify-end gap-1 whitespace-nowrap">
                 {o.is_locked && <Badge tone="green">Įspajamota</Badge>}
                 <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => doLock(o)}>{o.is_locked ? 'atrakinti' : 'įspajamoti'}</button>
-                <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(o)}>trinti</button>
+                {!o.is_locked && <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(o)}>trinti</button>}
               </span>
             ) },
           ]}
@@ -73,7 +76,7 @@ export default function OutflowsPage() {
         />
       </Card>
 
-      <Card title="Registruoti perdavimą / nurašymą" noPrint>
+      <Card title="Registruoti perdavimą / nurašymą" icon="truck" noPrint>
         <form onSubmit={submit} className="grid gap-3">
           <Field label="Data"><input type="date" className={inputCls} value={f.outflow_date} onChange={(e) => setF({ ...f, outflow_date: e.target.value })} required /></Field>
           <Field label="Partija">

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { getBatches, traceBatch, traceLWeek, errText, isShortage, type MaterialBatch, type TraceBatchResult, type TraceLWeekResult } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
 
+const MOVEMENT_TYPES: Record<string, string> = { pack_in: "Fasavimas", move: "Perkėlimas", ship_out: "Išvežimas" }
+
 export default function TraceabilityPage() {
   const [mode, setMode] = useState<'lweek' | 'batch'>('lweek')
   const [code, setCode] = useState('')
@@ -24,7 +26,7 @@ export default function TraceabilityPage() {
 
   const mvCols = [
     { header: 'Data', render: (m: { movement_date: string; movement_type: string; packed_product?: { name: string }; shop?: { name: string } | null; warehouse_from?: { name: string } | null; warehouse_to?: { name: string } | null; qty_units: number; qty_kg: number }) => fmtDate(m.movement_date) },
-    { header: 'Tipas', render: (m: { movement_type: string }) => <Badge>{m.movement_type}</Badge> },
+    { header: 'Tipas', render: (m: { movement_type: string }) => <Badge>{MOVEMENT_TYPES[m.movement_type] ?? m.movement_type}</Badge> },
     { header: 'Produktas', render: (m: { packed_product?: { name: string } }) => m.packed_product?.name },
     { header: 'Iš', render: (m: { warehouse_from?: { name: string } | null }) => m.warehouse_from?.name ?? '—' },
     { header: 'Į', render: (m: { warehouse_to?: { name: string } | null; shop?: { name: string } | null }) => m.warehouse_to?.name ?? m.shop?.name ?? '—' },
@@ -33,7 +35,7 @@ export default function TraceabilityPage() {
 
   return (
     <div className="grid gap-6">
-      <Card title="Atsekamumo paieška">
+      <Card title="Atsekamumo paieška" icon="search">
         <div className="flex flex-wrap items-end gap-3">
           <Field label="Kryptis">
             <select className={inputCls} value={mode} onChange={(e) => { setMode(e.target.value as 'lweek' | 'batch'); setLRes(null); setBRes(null) }}>
@@ -62,7 +64,7 @@ export default function TraceabilityPage() {
 
       {lRes && (
         <div className="grid gap-6 md:grid-cols-2">
-          <Card title={`L savaitė ${lRes.l_week.code} – panaudotos žaliavos`}>
+          <Card icon="leaf" title={`L savaitė ${lRes.l_week.code} – panaudotos žaliavos`}>
             <Table
               cols={[
                 { header: 'Žaliava', render: (u) => u.raw_material?.name },
@@ -74,7 +76,7 @@ export default function TraceabilityPage() {
               empty="Šiai L savaitei nėra sunaudojimų"
             />
           </Card>
-          <Card title={`L savaitė ${lRes.l_week.code} – produkto judėjimai`}>
+          <Card icon="truck" title={`L savaitė ${lRes.l_week.code} – produkto judėjimai`}>
             <Table cols={mvCols} rows={lRes.movements} empty="Nėra judėjimų" />
           </Card>
         </div>
@@ -82,7 +84,7 @@ export default function TraceabilityPage() {
 
       {bRes && (
         <div className="grid gap-6 md:grid-cols-2">
-          <Card title={`Partija ${bRes.batch.batch_number} – panaudota gamyboje`}>
+          <Card icon="factory" title={`Partija ${bRes.batch.batch_number} – panaudota gamyboje`}>
             <p className="mb-3 text-sm text-stone-500">
               {bRes.batch.raw_material?.name} · likutis {fmtKg(bRes.batch.balance_kg)} kg
             </p>
@@ -96,7 +98,7 @@ export default function TraceabilityPage() {
               empty="Ši partija dar nepanaudota"
             />
           </Card>
-          <Card title="Susijusių L savaičių produkto judėjimai">
+          <Card icon="truck" title="Susijusių L savaičių produkto judėjimai">
             <Table cols={mvCols} rows={bRes.movements} empty="Nėra judėjimų" />
           </Card>
         </div>

@@ -26,7 +26,7 @@ class CrudController extends Controller
 
     // Minimalios validacijos taisyklės (privalomi laukai)
     private const RULES = [
-        'raw-materials'       => ['name' => 'required|string|max:100'],
+        'raw-materials'       => ['name' => 'required|string|max:100', 'code' => 'nullable|string|max:20', 'requires_batch' => 'boolean'],
         'production-products' => ['name' => 'required|string|max:100'],
         'packed-products'     => ['name' => 'required|string|max:100', 'production_product_id' => 'required|exists:production_products,id'],
         'warehouses'          => ['name' => 'required|string|max:100'],

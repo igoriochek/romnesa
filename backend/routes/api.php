@@ -103,6 +103,7 @@ Route::get('reports/dashboard', [ReportController::class, 'dashboard']);
 Route::get('reports/batch-balances', [ReportController::class, 'batchBalances']);
 Route::get('reports/batches', [ReportController::class, 'batches']);   // partijų / likučių ataskaita
 Route::get('reports/usage', [ReportController::class, 'usage']);       // sunaudojimo ataskaita
+Route::get('reports/cost', [ReportController::class, 'cost']);         // gaminių žaliavų savikaina
 Route::get('reports/warehouse-stock', [ReportController::class, 'warehouseStock']);
 Route::get('reports/shipments', [ReportController::class, 'shipments']);
 

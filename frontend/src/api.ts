@@ -75,7 +75,8 @@ api.interceptors.response.use(undefined, async (error) => {
 
 api.interceptors.response.use(undefined, async (error) => {
   const cfg = error?.config as (typeof error.config & { _retriedLocal?: boolean }) | undefined
-  const serverFailed = !error?.response || error.response.status >= 500
+  // Rašymo užklausų nekartojam po 5xx - serveris galėjo jau įrašyti (būtų dublikatas kitoje DB)
+  const serverFailed = !error?.response || (error.response.status >= 500 && cfg?.method === 'get')
   if (cfg && !cfg._retriedLocal && serverFailed && api.defaults.baseURL !== localApiUrl && (await useLocalIfUp())) {
     cfg._retriedLocal = true
     cfg.baseURL = localApiUrl
@@ -103,6 +104,7 @@ export interface Paginated<T> {
 
 export interface RawMaterial {
   id: number
+  code: string | null
   name: string
   unit: string
   requires_batch: boolean
@@ -166,6 +168,7 @@ export interface MaterialBatch {
   id: number
   received_date: string
   raw_material_id: number
+  warehouse_id: number | null
   batch_number: string
   qty_received_kg: number
   unit_cost_eur: number | null  // savikaina, EUR/kg
@@ -181,6 +184,7 @@ export interface MaterialBatch {
   total_cost_eur?: number | null     // gauta kg × savikaina
   balance_value_eur?: number | null  // likutis kg × savikaina
   raw_material?: RawMaterial
+  warehouse?: Warehouse | null
   usages?: MaterialUsage[]      // tik GET /material-batches/{id}
   outflows?: MaterialOutflow[]  // tik GET /material-batches/{id}
   created_at?: string
@@ -195,12 +199,36 @@ export interface Production {
   recipe_id: number | null
   notes: string | null
   is_locked?: boolean
-  cost_eur?: number           // žaliavų savikaina
+  // Žaliavų savikaina (CostService): faktinė pagal partijų kainas + įvertinta, kur kaina dar neįvesta
+  cost_actual_eur?: number
+  cost_estimated_eur?: number
+  cost_eur?: number | null        // null - kuriai nors žaliavai kaina neįvesta niekada
   cost_per_kg_eur?: number | null
-  cost_complete?: boolean     // false - ne visoms partijoms nurodyta savikaina
+  cost_complete?: boolean         // true - visos partijos įkainotos, nieko netrūko (be įverčių)
+  priced_share?: number           // 0..1 - kg dalis su faktine partijos kaina
+  cost_materials?: CostMaterial[] // tik detalėje
   production_product?: ProductionProduct
   l_week?: LWeek
   usages?: MaterialUsage[]
+}
+
+export interface CostMaterial {
+  raw_material_id: number
+  raw_material: string | null
+  qty_kg: number
+  cost_eur: number | null
+  unit_cost_eur: number | null
+  estimated: boolean       // dalis įvertinta orientacine kaina
+  missing_price: boolean   // kainos nėra iš viso
+  share_pct: number | null
+}
+
+/** Receptūrinė savikaina 1 kg produkto pagal orientacines (paskutines žinomas) kainas. */
+export interface RecipeCost {
+  date: string
+  items: { raw_material_id: number; raw_material: string | null; qty_kg_per_kg: number; unit_cost_eur: number | null; cost_per_kg_eur: number | null }[]
+  cost_per_kg_eur: number
+  complete: boolean
 }
 
 export interface MaterialUsage {
@@ -322,6 +350,7 @@ export interface DashboardData {
 export interface ProductInfo {
   product: ProductionProduct & { packed_products: PackedProduct[] }
   recipe: Recipe | null
+  recipe_cost: RecipeCost | null
   produced_kg: number
   recent: Production[]
 }
@@ -381,11 +410,12 @@ export const getRecipes = () => api.get<Recipe[]>('/recipes')
 export const createClassifier = (resource: string, data: object) => api.post(`/${resource}`, data)
 
 // ---- Žaliavų apskaita ----
-export const getBatches = () => api.get<Paginated<MaterialBatch>>('/material-batches')
+// Visos partijos (iki 1000) - sąrašai ir filtrai veikia naršyklėje
+export const getBatches = () => api.get<Paginated<MaterialBatch>>('/material-batches', { params: { per_page: 1000 } })
 export const getBatch = (id: number) => api.get<MaterialBatch>(`/material-batches/${id}`)
 export const createBatch = (data: object) => api.post<MaterialBatch>('/material-batches', data)
 export const updateBatch = (id: number, data: object) => api.put<MaterialBatch>(`/material-batches/${id}`, data)
-export const getProductions = () => api.get<Paginated<Production>>('/productions')
+export const getProductions = (perPage = 50) => api.get<Paginated<Production>>('/productions', { params: { per_page: perPage } })
 export const getProduction = (id: number) => api.get<Production>(`/productions/${id}`)
 export const createProduction = (data: object) => api.post<Production>('/productions', data)
 export const getOutflows = (params?: { type?: 'transfer' | 'writeoff'; unassigned?: 1 }) =>
@@ -407,6 +437,26 @@ export interface ReportFilter { from?: string; to?: string; raw_material_id?: nu
 export const getBatchReport = (params: ReportFilter) => api.get<MaterialBatch[]>('/reports/batches', { params })
 export const getUsageReport = (params: ReportFilter) =>
   api.get<(MaterialUsage & { unit_cost_eur: number | null; value_eur: number | null })[]>('/reports/usage', { params })
+export interface CostSummary {
+  productions: number
+  qty_produced_kg: number
+  cost_eur: number | null
+  cost_estimated_eur: number
+  cost_per_kg_eur: number | null
+  cost_complete: boolean
+}
+export interface CostReport {
+  productions: (Required<Pick<Production, 'id' | 'production_date' | 'qty_produced_kg' | 'cost_actual_eur' | 'cost_estimated_eur' | 'cost_complete' | 'priced_share'>> & {
+    product: string | null; l_week: string | null; cost_eur: number | null; cost_per_kg_eur: number | null
+  })[]
+  by_product: (CostSummary & { product: string })[]
+  by_l_week: (CostSummary & { l_week: string; product: string })[]
+  by_material: (Omit<CostMaterial, 'raw_material_id'> & { raw_material: string })[]
+  totals: CostSummary
+  unpriced_batches: number
+}
+export const getCostReport = (params: { from?: string; to?: string; production_product_id?: number }) =>
+  api.get<CostReport>('/reports/cost', { params })
 export const getWarehouseStock = () => api.get<WarehouseStockRow[]>('/reports/warehouse-stock')
 export const getShipments = () => api.get<{ shop: string; qty_units: number; qty_kg: number; shipments: number }[]>('/reports/shipments')
 export const suggestPack = (weightKg: number) =>
@@ -421,7 +471,9 @@ export interface PreviewTake {
 
 export interface ProductionPreview {
   recipe: Recipe
-  plan: { raw_material: RawMaterial; needed_kg: number; take: PreviewTake[] }[]
+  recipe_cost: RecipeCost
+  // options - visos tą dieną tinkamos partijos su likučiu (planą galima keisti rankiniu būdu)
+  plan: { raw_material: RawMaterial; needed_kg: number; take: PreviewTake[]; options: MaterialBatch[] }[]
   shortage: boolean
 }
 

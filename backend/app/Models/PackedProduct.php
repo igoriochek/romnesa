@@ -8,6 +8,10 @@ class PackedProduct extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function productionProduct()
     {
         return $this->belongsTo(ProductionProduct::class);

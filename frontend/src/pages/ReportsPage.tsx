@@ -1,17 +1,21 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import {
-  getBatchReport, getBatches, getRawMaterials, getUsageReport, traceBatch, traceLWeek, errText, isShortage,
-  type MaterialBatch, type MaterialUsage, type RawMaterial, type ReportFilter, type TraceBatchResult, type TraceLWeekResult,
+  getBatchReport, getBatches, getCostReport, getProductionProducts, getRawMaterials, getUsageReport, traceBatch, traceLWeek, errText, isShortage,
+  type CostReport as CostData, type CostSummary, type MaterialBatch, type MaterialUsage, type ProductionProduct, type RawMaterial,
+  type ReportFilter, type TraceBatchResult, type TraceLWeekResult,
 } from '../api'
-import { Badge, Card, Err, Field, btnCls, fmtDate, fmtEur, fmtKg, fmtUnitEur, inputCls } from '../ui'
+import { Badge, Card, Err, Field, btnCls, fmtDate, fmtEur, fmtKg, fmtPct, fmtUnitEur, inputCls } from '../ui'
 
 const REPORTS = {
   batches: 'Partijų ataskaita',
   balances: 'Likučių ataskaita',
   usage: 'Sunaudojimo ataskaita',
+  cost: 'Gaminių savikainos ataskaita',
   trace: 'Atsekamumo ataskaita',
 } as const
-type ReportId = keyof typeof REPORTS
+export type ReportId = keyof typeof REPORTS
+/** Viršutinės juostos meniu užklausa: suformuoti ataskaitą ir iškart spausdinti / eksportuoti (n - kad pakartotinis spustelėjimas suveiktų). */
+export interface ReportRequest { type: ReportId; action: "print" | "pdf"; n: number }
 
 type UsageRow = MaterialUsage & { unit_cost_eur: number | null; value_eur: number | null }
 
@@ -125,6 +129,73 @@ function UsageReport({ rows }: { rows: UsageRow[] }) {
   )
 }
 
+/** „≈" - dalis įvertinta paskutine žinoma kaina; „—" - kainos nėra (apskaičiuoti negalima). */
+const est = (text: string, complete: boolean) => (text !== '—' && !complete ? `≈ ${text}` : text)
+
+function CostReport({ data }: { data: CostData }) {
+  const summaryCols = (first: Column<CostSummary & { product?: string; l_week?: string }>[]) => [
+    ...first,
+    { header: 'Gamybų', num: true, render: (r: CostSummary) => r.productions },
+    { header: 'Pagaminta kg', num: true, render: (r: CostSummary) => fmtKg(r.qty_produced_kg) },
+    { header: 'Žaliavų savikaina €', num: true, render: (r: CostSummary) => est(fmtEur(r.cost_eur), r.cost_complete) },
+    { header: '€/kg', num: true, render: (r: CostSummary) => <b>{est(fmtUnitEur(r.cost_per_kg_eur), r.cost_complete)}</b> },
+    { header: 'iš jų įvertinta €', num: true, render: (r: CostSummary) => (r.cost_estimated_eur ? fmtEur(r.cost_estimated_eur) : '—') },
+  ]
+  const t = data.totals
+  return (
+    <div className="grid gap-4">
+      {(data.unpriced_batches > 0 || !t.cost_complete) && (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200">
+          {data.unpriced_batches > 0 && <>Gamyboje panaudota <b>{data.unpriced_batches}</b> partijų be kainos. </>}
+          „≈“ – ta dalis įvertinta pagal paskutinę žinomą tos žaliavos kainą; „—“ – žaliavai kaina dar neįvesta, savikainos apskaičiuoti negalima.
+          Kainas galima įvesti „Žaliavų partijos“ lentelėje (filtras „Be kainos“).
+        </p>
+      )}
+      <div>
+        <h3 className="mb-1 text-sm font-semibold">Pagal gaminį</h3>
+        <ReportTable cols={summaryCols([{ header: 'Gaminys', render: (r) => r.product }])} rows={data.by_product} rowKey={(r) => r.product}
+          total={['Iš viso', t.productions, fmtKg(t.qty_produced_kg), est(fmtEur(t.cost_eur), t.cost_complete), est(fmtUnitEur(t.cost_per_kg_eur), t.cost_complete), t.cost_estimated_eur ? fmtEur(t.cost_estimated_eur) : '—']} />
+      </div>
+      <div>
+        <h3 className="mb-1 text-sm font-semibold">Savikainos struktūra pagal žaliavas</h3>
+        <ReportTable<CostData['by_material'][number]>
+          cols={[
+            { header: 'Žaliava', render: (m) => m.raw_material },
+            { header: 'Sunaudota kg', num: true, render: (m) => fmtKg(m.qty_kg) },
+            { header: 'Vid. €/kg', num: true, render: (m) => est(fmtUnitEur(m.unit_cost_eur), !m.estimated) },
+            { header: 'Suma €', num: true, render: (m) => (m.missing_price ? <span className="text-red-700">kaina neįvesta</span> : est(fmtEur(m.cost_eur), !m.estimated)) },
+            { header: 'Dalis %', num: true, render: (m) => (m.share_pct == null ? '—' : fmtPct(m.share_pct)) },
+          ]}
+          rows={data.by_material}
+          rowKey={(m) => m.raw_material}
+        />
+      </div>
+      <div>
+        <h3 className="mb-1 text-sm font-semibold">Pagal L savaitę</h3>
+        <ReportTable cols={summaryCols([{ header: 'L savaitė', render: (r) => r.l_week }, { header: 'Gaminys', render: (r) => r.product }])}
+          rows={data.by_l_week} rowKey={(r) => `${r.l_week}|${r.product}`} />
+      </div>
+      <div>
+        <h3 className="mb-1 text-sm font-semibold">Kiekviena gamyba</h3>
+        <ReportTable<CostData['productions'][number]>
+          cols={[
+            { header: 'Data', render: (p) => fmtDate(p.production_date) },
+            { header: 'Nr.', render: (p) => p.id },
+            { header: 'Gaminys', render: (p) => p.product },
+            { header: 'L savaitė', render: (p) => p.l_week },
+            { header: 'Pagaminta kg', num: true, render: (p) => fmtKg(p.qty_produced_kg) },
+            { header: 'Savikaina €', num: true, render: (p) => est(fmtEur(p.cost_eur), p.cost_complete) },
+            { header: '€/kg', num: true, render: (p) => est(fmtUnitEur(p.cost_per_kg_eur), p.cost_complete) },
+            { header: 'Įkainota %', num: true, render: (p) => fmtPct(p.priced_share * 100) },
+          ]}
+          rows={data.productions}
+          rowKey={(p) => p.id}
+        />
+      </div>
+    </div>
+  )
+}
+
 function TraceReport({ lw, batch }: { lw: TraceLWeekResult | null; batch: TraceBatchResult | null }) {
   const mvCols: Column<TraceLWeekResult['movements'][number]>[] = [
     { header: 'Data', render: (m) => fmtDate(m.movement_date) },
@@ -184,14 +255,20 @@ function TraceReport({ lw, batch }: { lw: TraceLWeekResult | null; batch: TraceB
   return null
 }
 
-export default function ReportsPage() {
-  const [type, setType] = useState<ReportId>('batches')
+export default function ReportsPage({ request, onReady }: {
+  request?: ReportRequest | null
+  onReady?: (action: ReportRequest['action'], label: string) => void
+}) {
+  const [type, setType] = useState<ReportId>(request?.type ?? 'batches')
   const [filter, setFilter] = useState({ from: '', to: '', raw_material_id: '' })
   const [trace, setTrace] = useState({ mode: 'lweek' as 'lweek' | 'batch', code: '', batchId: '' })
   const [materials, setMaterials] = useState<RawMaterial[]>([])
   const [allBatches, setAllBatches] = useState<MaterialBatch[]>([])
   const [batchRows, setBatchRows] = useState<MaterialBatch[] | null>(null)
   const [usageRows, setUsageRows] = useState<UsageRow[] | null>(null)
+  const [cost, setCost] = useState<CostData | null>(null)
+  const [products, setProducts] = useState<ProductionProduct[]>([])
+  const [productId, setProductId] = useState('')
   const [lw, setLw] = useState<TraceLWeekResult | null>(null)
   const [tb, setTb] = useState<TraceBatchResult | null>(null)
   const [generatedAt, setGeneratedAt] = useState<Date | null>(null)
@@ -201,11 +278,12 @@ export default function ReportsPage() {
   useEffect(() => {
     getRawMaterials().then((r) => setMaterials(r.data.data))
     getBatches().then((r) => setAllBatches(r.data.data))
+    getProductionProducts().then((r) => setProducts(r.data.data))
   }, [])
 
-  const reset = () => { setBatchRows(null); setUsageRows(null); setLw(null); setTb(null); setGeneratedAt(null) }
+  const reset = () => { setBatchRows(null); setUsageRows(null); setCost(null); setLw(null); setTb(null); setGeneratedAt(null) }
 
-  const generate = async () => {
+  const generate = async (t: ReportId = type) => {
     setBusy(true); setErr(null); reset()
     const params: ReportFilter = {
       ...(filter.from && { from: filter.from }),
@@ -213,16 +291,27 @@ export default function ReportsPage() {
       ...(filter.raw_material_id && { raw_material_id: +filter.raw_material_id }),
     }
     try {
-      if (type === 'batches') setBatchRows((await getBatchReport(params)).data)
-      if (type === 'balances') setBatchRows((await getBatchReport({ raw_material_id: params.raw_material_id, only_balance: 1 })).data)
-      if (type === 'usage') setUsageRows((await getUsageReport(params)).data)
-      if (type === 'trace') {
+      if (t === 'batches') setBatchRows((await getBatchReport(params)).data)
+      if (t === 'balances') setBatchRows((await getBatchReport({ raw_material_id: params.raw_material_id, only_balance: 1 })).data)
+      if (t === 'usage') setUsageRows((await getUsageReport(params)).data)
+      if (t === 'cost') setCost((await getCostReport({ from: params.from, to: params.to, ...(productId && { production_product_id: +productId }) })).data)
+      if (t === 'trace') {
         if (trace.mode === 'lweek') setLw((await traceLWeek(trace.code.trim())).data)
         else setTb((await traceBatch(+trace.batchId)).data)
       }
       setGeneratedAt(new Date())
-    } catch (e) { setErr(errText(e)) } finally { setBusy(false) }
+      return true
+    } catch (e) { setErr(errText(e)); return false } finally { setBusy(false) }
   }
+
+  // Meniu „Spausdinti“ / „Eksportuoti į PDF“ → ataskaita: suformuojam su esamais filtrais ir perduodam spausdinti.
+  // Atsekamumui reikia L savaitės / partijos - tik atidarom formą.
+  useEffect(() => {
+    if (!request) return
+    setType(request.type)
+    if (request.type === 'trace') { reset(); return }
+    generate(request.type).then((ok) => ok && onReady?.(request.action, REPORTS[request.type]))
+  }, [request?.n])
 
   const materialName = materials.find((m) => String(m.id) === filter.raw_material_id)?.name
   const period = type === 'balances' || type === 'trace'
@@ -232,7 +321,7 @@ export default function ReportsPage() {
 
   return (
     <div className="grid gap-6">
-      <Card title="Ataskaitos" noPrint>
+      <Card title="Ataskaitos" icon="chart" noPrint>
         <div className="flex flex-wrap items-end gap-3">
           <Field label="Ataskaita">
             <select className={inputCls} value={type} onChange={(e) => { setType(e.target.value as ReportId); reset() }}>
@@ -262,19 +351,28 @@ export default function ReportsPage() {
             <>
               {type !== 'balances' && (
                 <>
-                  <Field label={type === 'usage' ? 'Gamyba nuo' : 'Gauta nuo'}><input type="date" className={inputCls} value={filter.from} onChange={(e) => setFilter({ ...filter, from: e.target.value })} /></Field>
+                  <Field label={type === 'usage' || type === 'cost' ? 'Gamyba nuo' : 'Gauta nuo'}><input type="date" className={inputCls} value={filter.from} onChange={(e) => setFilter({ ...filter, from: e.target.value })} /></Field>
                   <Field label="iki"><input type="date" className={inputCls} value={filter.to} onChange={(e) => setFilter({ ...filter, to: e.target.value })} /></Field>
                 </>
               )}
-              <Field label="Žaliava">
-                <select className={inputCls} value={filter.raw_material_id} onChange={(e) => setFilter({ ...filter, raw_material_id: e.target.value })}>
-                  <option value="">Visos</option>
-                  {materials.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                </select>
-              </Field>
+              {type === 'cost' ? (
+                <Field label="Gaminys">
+                  <select className={inputCls} value={productId} onChange={(e) => setProductId(e.target.value)}>
+                    <option value="">Visi</option>
+                    {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </Field>
+              ) : (
+                <Field label="Žaliava">
+                  <select className={inputCls} value={filter.raw_material_id} onChange={(e) => setFilter({ ...filter, raw_material_id: e.target.value })}>
+                    <option value="">Visos</option>
+                    {materials.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  </select>
+                </Field>
+              )}
             </>
           )}
-          <button className={btnCls} onClick={generate} disabled={busy || !canGenerate}>{busy ? 'Formuojama…' : 'Formuoti'}</button>
+          <button className={btnCls} onClick={() => generate()} disabled={busy || !canGenerate}>{busy ? 'Formuojama…' : 'Formuoti'}</button>
         </div>
         <Err msg={err} />
         {generatedAt && <p className="mt-3 text-xs text-stone-500">Paruošta – spausdinkite arba eksportuokite PDF viršutinės juostos mygtukais.</p>}
@@ -284,18 +382,21 @@ export default function ReportsPage() {
         <section className="rounded-xl bg-white p-6 text-black shadow-sm ring-1 ring-stone-200">
           <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-stone-300 pb-2">
             <div>
-              <p className="text-xs text-stone-600">UAB „Romnesa" · Šakočių gamyba</p>
+              <p className="text-xs text-stone-600">UAB „Romnesa“ · Šakočių gamyba</p>
               <h2 className="text-lg font-bold">{REPORTS[type]}</h2>
             </div>
             <div className="text-right text-xs text-stone-600">
               {period && <p>Laikotarpis: {period}</p>}
-              {type !== 'trace' && <p>Žaliava: {materialName ?? 'visos'}</p>}
+              {type === 'cost'
+                ? <p>Gaminys: {products.find((p) => String(p.id) === productId)?.name ?? 'visi'}</p>
+                : type !== 'trace' && <p>Žaliava: {materialName ?? 'visos'}</p>}
               {type === 'balances' && <p>Likučiai {generatedAt.toLocaleDateString('lt-LT')} dienai</p>}
               <p>Suformuota {generatedAt.toLocaleString('lt-LT')}</p>
             </div>
           </div>
           {batchRows && <BatchesReport rows={batchRows} balances={type === 'balances'} />}
           {usageRows && <UsageReport rows={usageRows} />}
+          {cost && <CostReport data={cost} />}
           {type === 'trace' && <TraceReport lw={lw} batch={tb} />}
         </section>
       )}

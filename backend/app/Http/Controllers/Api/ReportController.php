@@ -10,6 +10,7 @@ use App\Models\PackedProduct;
 use App\Models\Production;
 use App\Models\ProductMovement;
 use App\Models\Warehouse;
+use App\Services\CostService;
 use App\Services\MaterialStockService;
 use App\Services\ProductStockService;
 use Illuminate\Http\Request;
@@ -22,12 +23,13 @@ class ReportController extends Controller
     public function __construct(
         private MaterialStockService $materialStock,
         private ProductStockService $productStock,
+        private CostService $cost,
     ) {}
 
     /** Dashboard KPI. */
     public function dashboard()
     {
-        $batches = MaterialBatch::with('rawMaterial')->get()
+        $batches = MaterialStockService::withSums(MaterialBatch::with('rawMaterial'))->get()
             ->each(fn ($b) => $this->materialStock->withTotals($b));
         $active = $batches->filter(fn ($b) => $b->balance_kg > 0.001);
 
@@ -101,7 +103,7 @@ class ReportController extends Controller
             'only_balance'    => 'nullable|boolean',
         ]);
 
-        return MaterialBatch::with('rawMaterial')
+        return MaterialStockService::withSums(MaterialBatch::with(['rawMaterial', 'warehouse']))
             ->when($f['from'] ?? null, fn ($q, $d) => $q->where('received_date', '>=', $d))
             ->when($f['to'] ?? null, fn ($q, $d) => $q->where('received_date', '<=', $d))
             ->when($f['raw_material_id'] ?? null, fn ($q, $id) => $q->where('raw_material_id', $id))
@@ -142,6 +144,86 @@ class ReportController extends Controller
                 fn ($a, $b) => $a->production_id <=> $b->production_id,
             ])
             ->values();
+    }
+
+    /**
+     * Gaminių žaliavų savikainos ataskaita: kiekviena gamyba, suvestinės pagal gaminį, L savaitę ir žaliavą.
+     * Filtrai: from/to (gamybos data), production_product_id.
+     * Grupės savikaina null, jei bent vienai jos gamybai savikainos apskaičiuoti negalima (žaliavai kaina neįvesta niekada).
+     */
+    public function cost(Request $request)
+    {
+        $f = $request->validate([
+            'from'                  => 'nullable|date',
+            'to'                    => 'nullable|date',
+            'production_product_id' => 'nullable|integer',
+        ]);
+
+        $productions = Production::with(['productionProduct', 'lWeek', 'usages.materialBatch', 'usages.rawMaterial'])
+            ->when($f['from'] ?? null, fn ($q, $d) => $q->where('production_date', '>=', $d))
+            ->when($f['to'] ?? null, fn ($q, $d) => $q->where('production_date', '<=', $d))
+            ->when($f['production_product_id'] ?? null, fn ($q, $id) => $q->where('production_product_id', $id))
+            ->orderBy('production_date')->orderBy('id')
+            ->get()
+            ->map(fn ($p) => ['p' => $p, 'c' => $this->cost->production($p)]);
+
+        $summary = function ($group) {
+            $kg = $group->sum(fn ($r) => (float) $r['p']->qty_produced_kg);
+            $computable = $group->every(fn ($r) => $r['c']['cost_eur'] !== null);
+            $eur = $computable ? $group->sum(fn ($r) => $r['c']['cost_eur']) : null;
+
+            return [
+                'productions'        => $group->count(),
+                'qty_produced_kg'    => round($kg, 3),
+                'cost_eur'           => $eur === null ? null : round($eur, 2),
+                'cost_estimated_eur' => round($group->sum(fn ($r) => $r['c']['cost_estimated_eur']), 2),
+                'cost_per_kg_eur'    => $eur !== null && $kg > 0 ? round($eur / $kg, 4) : null,
+                'cost_complete'      => $group->every(fn ($r) => $r['c']['cost_complete']),
+            ];
+        };
+
+        $byMaterial = $productions->flatMap(fn ($r) => $r['c']['cost_materials'])
+            ->groupBy('raw_material_id')
+            ->map(function ($rows) {
+                $missing = $rows->contains('missing_price', true);
+
+                return [
+                    'raw_material'  => $rows->first()['raw_material'],
+                    'qty_kg'        => round($rows->sum('qty_kg'), 3),
+                    'cost_eur'      => $missing ? null : round($rows->sum('cost_eur'), 2),
+                    'estimated'     => $rows->contains('estimated', true),
+                    'missing_price' => $missing,
+                ];
+            })->sortBy('raw_material')->values();
+        $materialsTotal = $byMaterial->sum(fn ($m) => (float) $m['cost_eur']);
+        $byMaterial = $byMaterial->map(fn ($m) => [
+            ...$m,
+            'unit_cost_eur' => $m['cost_eur'] !== null && $m['qty_kg'] > 0 ? round($m['cost_eur'] / $m['qty_kg'], 4) : null,
+            'share_pct'     => $m['cost_eur'] !== null && $materialsTotal > 0 ? round($m['cost_eur'] / $materialsTotal * 100, 1) : null,
+        ]);
+
+        return [
+            'productions' => $productions->map(fn ($r) => [
+                'id'              => $r['p']->id,
+                'production_date' => $r['p']->production_date->toDateString(),
+                'product'         => $r['p']->productionProduct?->name,
+                'l_week'          => $r['p']->lWeek?->code,
+                'qty_produced_kg' => (float) $r['p']->qty_produced_kg,
+                ...collect($r['c'])->except('cost_materials')->all(),
+            ])->values(),
+            'by_product' => $productions->groupBy(fn ($r) => $r['p']->productionProduct?->name)
+                ->map(fn ($g, $name) => ['product' => $name, ...$summary($g)])->sortKeys()->values(),
+            'by_l_week' => $productions->groupBy(fn ($r) => $r['p']->lWeek?->code.'|'.$r['p']->productionProduct?->name)
+                ->map(fn ($g) => [
+                    'l_week'  => $g->first()['p']->lWeek?->code,
+                    'product' => $g->first()['p']->productionProduct?->name,
+                    ...$summary($g),
+                ])->values(),
+            'by_material' => $byMaterial,
+            'totals'      => $summary($productions),
+            // gamyboje panaudotos partijos, kurioms kaina dar neįvesta (jų dalis savikainoje - įvertinta)
+            'unpriced_batches' => MaterialBatch::whereNull('unit_cost_eur')->whereHas('usages')->count(),
+        ];
     }
 
     /** Produkto likučiai pagal sandėlį (vidinė suvestinė). */

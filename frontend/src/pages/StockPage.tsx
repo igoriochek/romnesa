@@ -16,7 +16,7 @@ export default function StockPage() {
   return (
     <div className="grid gap-6">
       <Err msg={err} />
-      <Card title="Produktų likučiai sandėliuose">
+      <Card title="Produktų likučiai sandėliuose" icon="box">
         <Table
           cols={[
             { header: 'Sandėlis', render: (r) => r.warehouse },
@@ -30,7 +30,7 @@ export default function StockPage() {
         />
       </Card>
 
-      <Card title="Išvežimai pagal parduotuvę">
+      <Card title="Išvežimai pagal parduotuvę" icon="truck">
         <Table
           cols={[
             { header: 'Parduotuvė', render: (r) => r.shop },

@@ -16,7 +16,7 @@ function ActDocument({ act }: { act: WriteoffAct }) {
     <section className="rounded-xl bg-white p-8 text-sm text-black shadow-sm ring-1 ring-stone-200">
       <div className="flex justify-between">
         <div>
-          <p className="font-semibold">UAB „Romnesa"</p>
+          <p className="font-semibold">UAB „Romnesa“</p>
           <p className="text-stone-600">Šakočių gamyba</p>
         </div>
         <div className="text-right">
@@ -153,7 +153,7 @@ export default function WriteoffActsPage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-6 lg:grid-cols-[1fr_340px] no-print">
-        <Card title="Nurašymo aktai">
+        <Card title="Nurašymo aktai" icon="doc">
           <Table
             cols={[
               { header: 'Nr.', render: (a) => <b>{a.act_number}</b> },
@@ -191,7 +191,7 @@ export default function WriteoffActsPage() {
           />
         </Card>
 
-        <Card title="Formuoti nurašymo aktą">
+        <Card title="Formuoti nurašymo aktą" icon="pencil">
           <form onSubmit={submit} className="grid gap-3">
             <Field label="Akto data"><input type="date" className={inputCls} value={f.act_date} onChange={(e) => setF({ ...f, act_date: e.target.value })} required /></Field>
             <Field label="Akto Nr. (tuščias – automatiškai NA-metai-eil.)"><input className={inputCls} value={f.act_number} onChange={(e) => setF({ ...f, act_number: e.target.value })} /></Field>

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Services\CostService;
 use Illuminate\Database\Eloquent\Model;
 
 class Production extends Model
@@ -37,28 +38,18 @@ class Production extends Model
     }
 
     /**
-     * Žaliavų savikaina: Σ sunaudota kg × partijos €/kg.
-     * cost_complete=false, kai kuriai sunaudotai partijai nenurodyta savikaina arba partijos trūksta
-     * (žaliavos be privalomos partijos, pvz. vanduo, skaičiuojamos 0 €).
+     * Žaliavų savikaina (žr. CostService): faktinė pagal partijų kainas + įvertinta dalis,
+     * kur kaina dar neįvesta. $details - ir struktūra pagal žaliavas (cost_materials).
      */
-    public function withCost(): static
+    public function withCost(bool $details = false): static
     {
-        $this->loadMissing('usages.materialBatch', 'usages.rawMaterial');
-
-        $cost = 0.0;
-        $complete = true;
-        foreach ($this->usages as $u) {
-            $unit = $u->materialBatch?->unit_cost_eur;
-            if ($unit !== null) {
-                $cost += (float) $u->qty_kg * (float) $unit;
-            } elseif ($u->materialBatch || $u->rawMaterial?->requires_batch !== false) {
-                $complete = false;
-            }
+        $cost = app(CostService::class)->production($this);
+        if (! $details) {
+            unset($cost['cost_materials']);
         }
-
-        $this->cost_eur = round($cost, 2);
-        $this->cost_per_kg_eur = (float) $this->qty_produced_kg > 0 ? round($cost / (float) $this->qty_produced_kg, 4) : null;
-        $this->cost_complete = $complete;
+        foreach ($cost as $key => $value) {
+            $this->{$key} = $value;
+        }
 
         return $this;
     }

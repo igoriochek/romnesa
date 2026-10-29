@@ -15,7 +15,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // kainų sąrašas savikainai užkraunamas vieną kartą per užklausą
+        $this->app->scoped(\App\Services\CostService::class);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MaterialBatch;
 use App\Services\MaterialStockService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * Žaliavų partijos (Excel "1 Žaliavų gavimas").
@@ -17,10 +18,13 @@ class MaterialBatchController extends Controller
 
     public function index(Request $request)
     {
-        $batches = MaterialBatch::with('rawMaterial')
+        // Partijų puslapis filtruoja naršyklėje, todėl gali paprašyti daugiau nei vieno puslapio
+        $perPage = min(max((int) $request->query('per_page', 50), 1), 1000);
+
+        $batches = MaterialStockService::withSums(MaterialBatch::with(['rawMaterial', 'warehouse']))
             ->orderBy('expiry_date')
             ->orderByDesc('id')
-            ->paginate(50);
+            ->paginate($perPage);
 
         $batches->getCollection()->transform(fn ($b) => $this->stock->withTotals($b));
 
@@ -32,6 +36,7 @@ class MaterialBatchController extends Controller
         $data = $request->validate([
             'received_date'    => 'required|date',
             'raw_material_id'  => 'required|exists:raw_materials,id',
+            'warehouse_id'     => 'nullable|exists:warehouses,id',
             'batch_number'     => 'required|string|max:50|unique:material_batches,batch_number',
             'qty_received_kg'  => 'required|numeric|gt:0',
             'unit_cost_eur'    => 'nullable|numeric|min:0',
@@ -43,7 +48,7 @@ class MaterialBatchController extends Controller
 
         $data['created_by_id'] = $request->user()?->id;
 
-        return response()->json(MaterialBatch::create($data), 201);
+        return response()->json(MaterialBatch::create($data)->load(['rawMaterial', 'warehouse']), 201);
     }
 
     /**
@@ -60,6 +65,7 @@ class MaterialBatchController extends Controller
         $data = $request->validate([
             'received_date'    => 'sometimes|required|date',
             'raw_material_id'  => 'sometimes|required|exists:raw_materials,id',
+            'warehouse_id'     => 'nullable|exists:warehouses,id',
             'batch_number'     => "sometimes|required|string|max:50|unique:material_batches,batch_number,{$batch->id}",
             'qty_received_kg'  => 'sometimes|required|numeric|gt:0',
             'unit_cost_eur'    => 'nullable|numeric|min:0',
@@ -69,9 +75,9 @@ class MaterialBatchController extends Controller
             'notes'            => 'nullable|string|max:255',
         ]);
 
-        $received = $data['received_date'] ?? $batch->received_date->toDateString();
-        $expiry = $data['expiry_date'] ?? $batch->expiry_date->toDateString();
-        if ($expiry <= $received) {
+        $received = Carbon::parse($data['received_date'] ?? $batch->received_date)->startOfDay();
+        $expiry = Carbon::parse($data['expiry_date'] ?? $batch->expiry_date)->startOfDay();
+        if ($expiry->lte($received)) {
             return response()->json(['message' => 'Galiojimo data turi būti vėlesnė už gavimo datą.'], 422);
         }
 
@@ -85,16 +91,31 @@ class MaterialBatchController extends Controller
         if (isset($data['qty_received_kg']) && $data['qty_received_kg'] < $consumed) {
             return response()->json(['message' => "Kiekis negali būti mažesnis už jau sunaudotą ir perduotą ({$consumed} kg)."], 422);
         }
+        // Panaudotos partijos datos negali prieštarauti jau užfiksuotam sunaudojimui (gauta iki, galioja per gamybą)
+        if ($inUse) {
+            $firstUse = collect([
+                $batch->usages()->join('productions', 'productions.id', '=', 'material_usages.production_id')->min('productions.production_date'),
+                $batch->outflows()->min('outflow_date'),
+            ])->filter()->min();
+            $lastProduction = $batch->usages()->join('productions', 'productions.id', '=', 'material_usages.production_id')->max('productions.production_date');
+            if ($firstUse && $received->gt(Carbon::parse($firstUse))) {
+                return response()->json(['message' => 'Gavimo data negali būti vėlesnė už pirmą partijos panaudojimą ('.Carbon::parse($firstUse)->toDateString().').'], 422);
+            }
+            if ($lastProduction && $expiry->lt(Carbon::parse($lastProduction))) {
+                return response()->json(['message' => 'Galiojimo data negali būti ankstesnė už paskutinę gamybą iš šios partijos ('.Carbon::parse($lastProduction)->toDateString().').'], 422);
+            }
+        }
 
         $batch->update($data);
 
-        return $this->stock->withTotals($batch->load('rawMaterial'));
+        return $this->stock->withTotals($batch->load(['rawMaterial', 'warehouse']));
     }
 
     public function show(int $id)
     {
         $batch = MaterialBatch::with([
             'rawMaterial',
+            'warehouse',
             'usages.production.productionProduct',
             'usages.production.lWeek',
             'outflows',

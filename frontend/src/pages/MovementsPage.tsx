@@ -84,6 +84,7 @@ export default function MovementsPage() {
     <div className="grid gap-6 lg:grid-cols-[1fr_320px] print-grid-1">
       <Card
         title="Judėjimų žurnalas"
+        icon="truck"
         actions={
           <select
             className="rounded-lg border border-stone-300 px-2 py-1 text-sm"
@@ -109,7 +110,7 @@ export default function MovementsPage() {
               <span className="flex justify-end gap-1 whitespace-nowrap">
                 {m.is_locked && <Badge tone="green">Įspajamota</Badge>}
                 <button className="rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-100" onClick={() => doLock(m)}>{m.is_locked ? 'atrakinti' : 'įspajamoti'}</button>
-                <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(m)}>trinti</button>
+                {!m.is_locked && <button className="rounded px-2 py-0.5 text-xs text-red-600 hover:bg-red-50" onClick={() => doDelete(m)}>trinti</button>}
               </span>
             ) },
           ]}
@@ -117,7 +118,7 @@ export default function MovementsPage() {
         />
       </Card>
 
-      <Card title="Registruoti judėjimą" noPrint>
+      <Card title="Registruoti judėjimą" icon="truck" noPrint>
         <form onSubmit={submit} className="grid gap-3">
           <Field label="Data"><input type="date" className={inputCls} value={f.movement_date} onChange={(e) => set('movement_date', e.target.value)} required /></Field>
           <Field label="Tipas">

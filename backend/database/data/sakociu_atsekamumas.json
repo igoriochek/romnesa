@@ -1,0 +1,2978 @@
+{
+ "source": "SAKOCIU_PRODUKTO_ATSEKAMUMAS_STABILUS_BE_ATKURIMO naujas.xlsx",
+ "recipe_valid_from": "2026-06-30",
+ "raw_materials": [
+  {
+   "name": "Miltai",
+   "code": "Mil",
+   "requires_batch": true
+  },
+  {
+   "name": "Pienas",
+   "code": "P",
+   "requires_batch": true
+  },
+  {
+   "name": "Kiaušiniai",
+   "code": "K",
+   "requires_batch": true
+  },
+  {
+   "name": "Grietinės mišinys",
+   "code": "Gr",
+   "requires_batch": true
+  },
+  {
+   "name": "Cukrus",
+   "code": "Cuk",
+   "requires_batch": true
+  },
+  {
+   "name": "Ciberžolė",
+   "code": "Cib",
+   "requires_batch": true
+  },
+  {
+   "name": "Margarinas Šakočiui \"Alvas\"",
+   "code": "MarA",
+   "requires_batch": true
+  },
+  {
+   "name": "Margarinas trapiam \"IEVA\"",
+   "code": "MarI",
+   "requires_batch": true
+  },
+  {
+   "name": "Kvapnioji medžiaga",
+   "code": "Kvp",
+   "requires_batch": true
+  },
+  {
+   "name": "Sviestas",
+   "code": "Sv",
+   "requires_batch": true
+  },
+  {
+   "name": "Riebalų mišinys",
+   "code": "Rmis",
+   "requires_batch": true
+  },
+  {
+   "name": "Vanduo",
+   "code": null,
+   "requires_batch": false
+  }
+ ],
+ "recipes": [
+  {
+   "product": "Šakotis",
+   "items": [
+    {
+     "raw_material": "Miltai",
+     "qty_kg_per_kg": 0.408163
+    },
+    {
+     "raw_material": "Pienas",
+     "qty_kg_per_kg": 0.153061
+    },
+    {
+     "raw_material": "Kiaušiniai",
+     "qty_kg_per_kg": 0.561224
+    },
+    {
+     "raw_material": "Cukrus",
+     "qty_kg_per_kg": 0.306122
+    },
+    {
+     "raw_material": "Margarinas Šakočiui \"Alvas\"",
+     "qty_kg_per_kg": 0.306122
+    },
+    {
+     "raw_material": "Kvapnioji medžiaga",
+     "qty_kg_per_kg": 0.00102
+    },
+    {
+     "raw_material": "Ciberžolė",
+     "qty_kg_per_kg": 0.003571
+    },
+    {
+     "raw_material": "Vanduo",
+     "qty_kg_per_kg": 0.051011
+    }
+   ]
+  },
+  {
+   "product": "Trapus šakotis",
+   "items": [
+    {
+     "raw_material": "Miltai",
+     "qty_kg_per_kg": 0.510204
+    },
+    {
+     "raw_material": "Grietinės mišinys",
+     "qty_kg_per_kg": 0.367347
+    },
+    {
+     "raw_material": "Kiaušiniai",
+     "qty_kg_per_kg": 0.510204
+    },
+    {
+     "raw_material": "Cukrus",
+     "qty_kg_per_kg": 0.306122
+    },
+    {
+     "raw_material": "Margarinas trapiam \"IEVA\"",
+     "qty_kg_per_kg": 0.361224
+    }
+   ]
+  },
+  {
+   "product": "Šakotis su sviestu",
+   "items": [
+    {
+     "raw_material": "Miltai",
+     "qty_kg_per_kg": 0.408163
+    },
+    {
+     "raw_material": "Pienas",
+     "qty_kg_per_kg": 0.153061
+    },
+    {
+     "raw_material": "Kiaušiniai",
+     "qty_kg_per_kg": 0.561224
+    },
+    {
+     "raw_material": "Cukrus",
+     "qty_kg_per_kg": 0.306122
+    },
+    {
+     "raw_material": "Sviestas",
+     "qty_kg_per_kg": 0.306122
+    },
+    {
+     "raw_material": "Kvapnioji medžiaga",
+     "qty_kg_per_kg": 0.00102
+    },
+    {
+     "raw_material": "Ciberžolė",
+     "qty_kg_per_kg": 0.003571
+    },
+    {
+     "raw_material": "Vanduo",
+     "qty_kg_per_kg": 0.10204
+    }
+   ]
+  }
+ ],
+ "batches": [
+  {
+   "excel_row": 3,
+   "batch_number": "Mil0630",
+   "raw_material": "Miltai",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 1650,
+   "supplier": "UAB Sanitex",
+   "invoice_number": null,
+   "expiry_date": "2027-02-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 4,
+   "batch_number": "P0630",
+   "raw_material": "Pienas",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 115,
+   "supplier": "UAB Sanitex",
+   "invoice_number": null,
+   "expiry_date": "2026-07-05",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 5,
+   "batch_number": "K0630",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 2592,
+   "supplier": "OVOSTAR",
+   "invoice_number": null,
+   "expiry_date": "2026-07-15",
+   "notes": null,
+   "excel_balance_kg": 856.562
+  },
+  {
+   "excel_row": 6,
+   "batch_number": "Gr0630",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 110,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": null,
+   "expiry_date": "2026-07-05",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 7,
+   "batch_number": "Cuk0630",
+   "raw_material": "Cukrus",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 1000,
+   "supplier": "UAB Sanitex",
+   "invoice_number": null,
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 8,
+   "batch_number": "Cib0630",
+   "raw_material": "Ciberžolė",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 17,
+   "supplier": "SPAISVILE",
+   "invoice_number": null,
+   "expiry_date": "2027-07-05",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 9,
+   "batch_number": "MarA0630",
+   "raw_material": "Margarinas Šakočiui \"Alvas\"",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 1280,
+   "supplier": "Alvas ir KO",
+   "invoice_number": null,
+   "expiry_date": "2026-10-11",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 10,
+   "batch_number": "MarI0630",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 800,
+   "supplier": "Leipurinas",
+   "invoice_number": null,
+   "expiry_date": "2026-11-10",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 11,
+   "batch_number": "Kvp0630",
+   "raw_material": "Kvapnioji medžiaga",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 20,
+   "supplier": "UAB IZABELITA",
+   "invoice_number": null,
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 12,
+   "batch_number": "Sv0630",
+   "raw_material": "Sviestas",
+   "received_date": "2026-06-30",
+   "qty_received_kg": 325,
+   "supplier": "Elitex baltic",
+   "invoice_number": null,
+   "expiry_date": "2026-12-12",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 13,
+   "batch_number": "Gr0701",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-01",
+   "qty_received_kg": 100,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01914412",
+   "expiry_date": "2026-07-07",
+   "notes": null,
+   "excel_balance_kg": 19.2
+  },
+  {
+   "excel_row": 14,
+   "batch_number": "P0701",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-01",
+   "qty_received_kg": 100,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5023762",
+   "expiry_date": "2026-07-07",
+   "notes": null,
+   "excel_balance_kg": 70.703
+  },
+  {
+   "excel_row": 15,
+   "batch_number": "Cuk0701",
+   "raw_material": "Cukrus",
+   "received_date": "2026-07-01",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5023762",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 16,
+   "batch_number": "MarI0702",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-07-02",
+   "qty_received_kg": 900,
+   "supplier": "Leipurinas",
+   "invoice_number": "175075280",
+   "expiry_date": "2026-12-17",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 17,
+   "batch_number": "Gr0703",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-03",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01915015",
+   "expiry_date": "2026-07-12",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 18,
+   "batch_number": "P0703",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-06",
+   "qty_received_kg": 120,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5034119",
+   "expiry_date": "2026-07-10",
+   "notes": null,
+   "excel_balance_kg": 50.7
+  },
+  {
+   "excel_row": 19,
+   "batch_number": "Mil0708",
+   "raw_material": "Miltai",
+   "received_date": "2026-07-08",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5039742",
+   "expiry_date": "2027-05-29",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 20,
+   "batch_number": "Gr0710",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-10",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE04987687",
+   "expiry_date": "2026-07-18",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 21,
+   "batch_number": "P0710",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-13",
+   "qty_received_kg": 50,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5049992",
+   "expiry_date": "2026-07-17",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 22,
+   "batch_number": "K0713",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-07-13",
+   "qty_received_kg": 2592,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00068388",
+   "expiry_date": "2026-08-03",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 23,
+   "batch_number": "Gr0715",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-15",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE02650851",
+   "expiry_date": "2026-07-24",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 24,
+   "batch_number": "P0715",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-15",
+   "qty_received_kg": 100,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5056405",
+   "expiry_date": "2026-07-21",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 25,
+   "batch_number": "Gr0717",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-17",
+   "qty_received_kg": 125,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03856192",
+   "expiry_date": "2026-07-23",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 26,
+   "batch_number": "Cuk0720",
+   "raw_material": "Cukrus",
+   "received_date": "2026-07-20",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5066999",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 27,
+   "batch_number": "Mil0720",
+   "raw_material": "Miltai",
+   "received_date": "2026-07-20",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5066999",
+   "expiry_date": "2027-06-12",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 28,
+   "batch_number": "P0720",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-20",
+   "qty_received_kg": 100,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5066999",
+   "expiry_date": "2026-07-24",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 29,
+   "batch_number": "Gr0720",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-20",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE0498856",
+   "expiry_date": "2026-07-31",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 30,
+   "batch_number": "Gr0722",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-22",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE04991392",
+   "expiry_date": "2026-07-31",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 31,
+   "batch_number": "Gr0724",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-24",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE04993080",
+   "expiry_date": "2026-08-03",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 32,
+   "batch_number": "Cuk0727",
+   "raw_material": "Cukrus",
+   "received_date": "2026-07-27",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5083691",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 33,
+   "batch_number": "Mil0727",
+   "raw_material": "Miltai",
+   "received_date": "2026-07-27",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5083691",
+   "expiry_date": "2027-06-09",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 34,
+   "batch_number": "P0727",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-27",
+   "qty_received_kg": 100,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5083691",
+   "expiry_date": "2026-07-31",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 35,
+   "batch_number": "Gr0729",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-29",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03858969",
+   "expiry_date": "2026-08-07",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 36,
+   "batch_number": "P0729",
+   "raw_material": "Pienas",
+   "received_date": "2026-07-29",
+   "qty_received_kg": 120,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5090123",
+   "expiry_date": "2026-08-04",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 37,
+   "batch_number": "MarA0730",
+   "raw_material": "Margarinas Šakočiui \"Alvas\"",
+   "received_date": "2026-07-30",
+   "qty_received_kg": 1440,
+   "supplier": "Alvas ir KO",
+   "invoice_number": "PP0300023282",
+   "expiry_date": "2026-10-27",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 38,
+   "batch_number": "MarI0730",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-07-30",
+   "qty_received_kg": 900,
+   "supplier": "Leipurinas",
+   "invoice_number": "175076452",
+   "expiry_date": "2027-01-14",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 39,
+   "batch_number": "Cuk0730",
+   "raw_material": "Cukrus",
+   "received_date": "2026-07-30",
+   "qty_received_kg": 800,
+   "supplier": "Leipurinas",
+   "invoice_number": "175076452",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 40,
+   "batch_number": "Sv0730",
+   "raw_material": "Sviestas",
+   "received_date": "2026-07-30",
+   "qty_received_kg": 500,
+   "supplier": "Elitex baltic",
+   "invoice_number": "EB00260795",
+   "expiry_date": "2027-06-08",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 41,
+   "batch_number": "Gr0731",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-07-31",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01918586",
+   "expiry_date": "2026-08-05",
+   "notes": null,
+   "excel_balance_kg": 12
+  },
+  {
+   "excel_row": 42,
+   "batch_number": "Gr0803",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-03",
+   "qty_received_kg": 100,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE04995015",
+   "expiry_date": "2026-08-05",
+   "notes": null,
+   "excel_balance_kg": 100
+  },
+  {
+   "excel_row": 43,
+   "batch_number": "P0803",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-03",
+   "qty_received_kg": 120,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5100485",
+   "expiry_date": "2026-08-07",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 44,
+   "batch_number": "Mil0803",
+   "raw_material": "Miltai",
+   "received_date": "2026-08-03",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5100485",
+   "expiry_date": "2027-07-13",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 45,
+   "batch_number": "K0803",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-08-03",
+   "qty_received_kg": 2592,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00068980",
+   "expiry_date": "2026-08-23",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 46,
+   "batch_number": "Gr0805",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-05",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE04996790",
+   "expiry_date": "2026-08-14",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 47,
+   "batch_number": "P0805",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-05",
+   "qty_received_kg": 120,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5107528",
+   "expiry_date": "2026-08-11",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 48,
+   "batch_number": "Mil0805",
+   "raw_material": "Miltai",
+   "received_date": "2026-08-05",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5107528",
+   "expiry_date": "2027-07-09",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 49,
+   "batch_number": "Cib0805",
+   "raw_material": "Ciberžolė",
+   "received_date": "2026-08-05",
+   "qty_received_kg": 25,
+   "supplier": "SPAISVILE",
+   "invoice_number": "SVA260013119",
+   "expiry_date": "2028-05-22",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 50,
+   "batch_number": "P0810",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-10",
+   "qty_received_kg": 100,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5119332",
+   "expiry_date": "2026-08-14",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 51,
+   "batch_number": "K0810",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-08-10",
+   "qty_received_kg": 1944,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00069180",
+   "expiry_date": "2026-08-30",
+   "notes": null,
+   "excel_balance_kg": 458.396
+  },
+  {
+   "excel_row": 52,
+   "batch_number": "Gr0810",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-10",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03862335",
+   "expiry_date": "2026-08-17",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 53,
+   "batch_number": "Gr0812",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-12",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03864006",
+   "expiry_date": "2026-08-21",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 54,
+   "batch_number": "P0812",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-12",
+   "qty_received_kg": 250,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5125570",
+   "expiry_date": "2026-08-18",
+   "notes": null,
+   "excel_balance_kg": 109.65
+  },
+  {
+   "excel_row": 55,
+   "batch_number": "Cuk0812",
+   "raw_material": "Cukrus",
+   "received_date": "2026-08-12",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5125570",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 56,
+   "batch_number": "Mil0812",
+   "raw_material": "Miltai",
+   "received_date": "2026-08-12",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5125570",
+   "expiry_date": "2027-07-21",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 57,
+   "batch_number": "P0817",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-17",
+   "qty_received_kg": 50,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5135910",
+   "expiry_date": "2026-08-21",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 58,
+   "batch_number": "Gr0817",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-17",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE041001368",
+   "expiry_date": "2026-08-24",
+   "notes": null,
+   "excel_balance_kg": 38.4
+  },
+  {
+   "excel_row": 59,
+   "batch_number": "P0819",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-19",
+   "qty_received_kg": 150,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5141841",
+   "expiry_date": "2026-08-25",
+   "notes": null,
+   "excel_balance_kg": 56.15
+  },
+  {
+   "excel_row": 60,
+   "batch_number": "Mil0819",
+   "raw_material": "Miltai",
+   "received_date": "2026-08-19",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5141841",
+   "expiry_date": "2027-08-03",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 61,
+   "batch_number": "Cuk0819",
+   "raw_material": "Cukrus",
+   "received_date": "2026-08-19",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5141841",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 62,
+   "batch_number": "MarI0820",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-08-20",
+   "qty_received_kg": 900,
+   "supplier": "Leipurinas",
+   "invoice_number": "175077518",
+   "expiry_date": "2027-01-14",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 63,
+   "batch_number": "K0820",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-08-20",
+   "qty_received_kg": 1944,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00069386",
+   "expiry_date": "2026-09-08",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 64,
+   "batch_number": "Sv0824",
+   "raw_material": "Sviestas",
+   "received_date": "2026-08-24",
+   "qty_received_kg": 800,
+   "supplier": "Elitex baltic",
+   "invoice_number": "EB00260888",
+   "expiry_date": "2027-01-05",
+   "notes": null,
+   "excel_balance_kg": 673.1
+  },
+  {
+   "excel_row": 65,
+   "batch_number": "P0824",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-24",
+   "qty_received_kg": 100,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5152809",
+   "expiry_date": "2026-08-28",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 66,
+   "batch_number": "Gr0824",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-24",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01922380",
+   "expiry_date": "2026-08-31",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 67,
+   "batch_number": "P0826",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-26",
+   "qty_received_kg": 50,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5159265",
+   "expiry_date": "2026-09-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 68,
+   "batch_number": "Cuk0826",
+   "raw_material": "Cukrus",
+   "received_date": "2026-08-26",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5159265",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 69,
+   "batch_number": "Mil0826",
+   "raw_material": "Miltai",
+   "received_date": "2026-08-26",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5159265",
+   "expiry_date": "2027-08-06",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 70,
+   "batch_number": "P0831",
+   "raw_material": "Pienas",
+   "received_date": "2026-08-31",
+   "qty_received_kg": 193,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5159265",
+   "expiry_date": "2026-09-04",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 71,
+   "batch_number": "Gr0831",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-08-31",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01923901",
+   "expiry_date": "2026-09-09",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 72,
+   "batch_number": "K0901",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-09-01",
+   "qty_received_kg": 3240,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00069772",
+   "expiry_date": "2026-09-21",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 73,
+   "batch_number": "P0902",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-02",
+   "qty_received_kg": 250,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5175694",
+   "expiry_date": "2026-09-08",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 74,
+   "batch_number": "Cuk0902",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-02",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5175694",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 75,
+   "batch_number": "Mil0902",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-02",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5175694",
+   "expiry_date": "2027-08-06",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 76,
+   "batch_number": "Gr0902",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-02",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03868161",
+   "expiry_date": "2026-09-11",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 77,
+   "batch_number": "MarI0903",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-09-03",
+   "qty_received_kg": 900,
+   "supplier": "Leipurinas",
+   "invoice_number": "175078074",
+   "expiry_date": "2027-02-18",
+   "notes": null,
+   "excel_balance_kg": 94.629
+  },
+  {
+   "excel_row": 78,
+   "batch_number": "MarA0903",
+   "raw_material": "Margarinas Šakočiui \"Alvas\"",
+   "received_date": "2026-09-03",
+   "qty_received_kg": 1440,
+   "supplier": "Alvas ir KO",
+   "invoice_number": "PP0300023462",
+   "expiry_date": "2026-10-27",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 79,
+   "batch_number": "Cuk0903",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-03",
+   "qty_received_kg": 800,
+   "supplier": "Leipurinas",
+   "invoice_number": "175078074",
+   "expiry_date": "2028-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 80,
+   "batch_number": "Gr0904",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-04",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03869984",
+   "expiry_date": "2026-09-14",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 81,
+   "batch_number": "P0907",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-07",
+   "qty_received_kg": 297,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5186295",
+   "expiry_date": "2026-09-11",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 82,
+   "batch_number": "Mil0907",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-07",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5186295",
+   "expiry_date": "2027-07-10",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 83,
+   "batch_number": "Gr0907",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-07",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01925960",
+   "expiry_date": "2026-09-14",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 84,
+   "batch_number": "Kvp0907",
+   "raw_material": "Kvapnioji medžiaga",
+   "received_date": "2026-09-07",
+   "qty_received_kg": 20,
+   "supplier": "UAB IZABELITA",
+   "invoice_number": "IZA42016344",
+   "expiry_date": "2028-11-20",
+   "notes": null,
+   "excel_balance_kg": 14.79
+  },
+  {
+   "excel_row": 85,
+   "batch_number": "P0909",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-09",
+   "qty_received_kg": 300,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5193384",
+   "expiry_date": "2026-09-15",
+   "notes": null,
+   "excel_balance_kg": 57.021
+  },
+  {
+   "excel_row": 86,
+   "batch_number": "Cuk0909",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-09",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5193384",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 87,
+   "batch_number": "Mil0909",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-09",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5193384",
+   "expiry_date": "2027-08-13",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 88,
+   "batch_number": "Gr0909",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-09",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE041007302",
+   "expiry_date": "2026-09-18",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 89,
+   "batch_number": "MarI0910",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-09-10",
+   "qty_received_kg": 900,
+   "supplier": "Leipurinas",
+   "invoice_number": "175078382",
+   "expiry_date": "2027-02-18",
+   "notes": null,
+   "excel_balance_kg": 900
+  },
+  {
+   "excel_row": 90,
+   "batch_number": "Gr0911",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-11",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01927255",
+   "expiry_date": "2026-09-20",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 91,
+   "batch_number": "Gr0914",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-14",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03871875",
+   "expiry_date": "2026-09-21",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 92,
+   "batch_number": "K0914",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-09-14",
+   "qty_received_kg": 4536,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00070166",
+   "expiry_date": "2026-10-05",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 93,
+   "batch_number": "P0914",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-14",
+   "qty_received_kg": 150,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5203172",
+   "expiry_date": "2026-09-18",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 94,
+   "batch_number": "Mil0914",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-14",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5203172",
+   "expiry_date": "2027-08-31",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 95,
+   "batch_number": "Cuk0914",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-14",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5203172",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 96,
+   "batch_number": "Gr0916",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-16",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03874393",
+   "expiry_date": "2026-09-25",
+   "notes": null,
+   "excel_balance_kg": 200
+  },
+  {
+   "excel_row": 97,
+   "batch_number": "P0916",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-16",
+   "qty_received_kg": 52,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5209875",
+   "expiry_date": "2026-09-22",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 98,
+   "batch_number": "Mil0916",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-16",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5209875",
+   "expiry_date": "2027-08-31",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 99,
+   "batch_number": "Cuk0916",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-16",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5209875",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 100,
+   "batch_number": "MarA0916",
+   "raw_material": "Margarinas Šakočiui \"Alvas\"",
+   "received_date": "2026-09-16",
+   "qty_received_kg": 1440,
+   "supplier": "Alvas ir KO",
+   "invoice_number": "PP0300023559",
+   "expiry_date": "2026-10-27",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 101,
+   "batch_number": "P0917",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-17",
+   "qty_received_kg": 348,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5213191",
+   "expiry_date": "2026-09-22",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 102,
+   "batch_number": "MarI0917",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-09-17",
+   "qty_received_kg": 900,
+   "supplier": "Leipurinas",
+   "invoice_number": "175078713",
+   "expiry_date": "2026-12-12",
+   "notes": null,
+   "excel_balance_kg": 900
+  },
+  {
+   "excel_row": 103,
+   "batch_number": "Gr0918",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-18",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE02659469",
+   "expiry_date": "2026-09-26",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 104,
+   "batch_number": "Gr0921",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-21",
+   "qty_received_kg": 100,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE041012589",
+   "expiry_date": "2026-09-28",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 105,
+   "batch_number": "P0921",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-21",
+   "qty_received_kg": 200,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5220440",
+   "expiry_date": "2026-09-25",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 106,
+   "batch_number": "Mil0921",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-21",
+   "qty_received_kg": 2400,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5220440",
+   "expiry_date": "2027-08-28",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 107,
+   "batch_number": "Cuk0921",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-21",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5220440",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 188.325
+  },
+  {
+   "excel_row": 108,
+   "batch_number": "MarA0922",
+   "raw_material": "Margarinas Šakočiui \"Alvas\"",
+   "received_date": "2026-09-22",
+   "qty_received_kg": 2160,
+   "supplier": "Alvas ir KO",
+   "invoice_number": "PP0300023615",
+   "expiry_date": "2026-10-27",
+   "notes": null,
+   "excel_balance_kg": 1321.2
+  },
+  {
+   "excel_row": 109,
+   "batch_number": "Gr0923",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-23",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01928333",
+   "expiry_date": "2026-10-01",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 110,
+   "batch_number": "K0923",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-09-23",
+   "qty_received_kg": 4536,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00070352",
+   "expiry_date": "2026-10-12",
+   "notes": null,
+   "excel_balance_kg": 2980.367
+  },
+  {
+   "excel_row": 111,
+   "batch_number": "P0923",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-23",
+   "qty_received_kg": 400,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5226423",
+   "expiry_date": "2026-10-12",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 112,
+   "batch_number": "Mil0923",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-23",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5226423",
+   "expiry_date": "2027-08-28",
+   "notes": null,
+   "excel_balance_kg": 0
+  },
+  {
+   "excel_row": 113,
+   "batch_number": "Cuk0923",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-23",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5226423",
+   "expiry_date": "2028-01-01",
+   "notes": null,
+   "excel_balance_kg": 1600
+  },
+  {
+   "excel_row": 114,
+   "batch_number": "MarI0924",
+   "raw_material": "Margarinas trapiam \"IEVA\"",
+   "received_date": "2026-09-24",
+   "qty_received_kg": 1800,
+   "supplier": "Leipurinas",
+   "invoice_number": "175079043",
+   "expiry_date": "2027-03-15",
+   "notes": null,
+   "excel_balance_kg": 1800
+  },
+  {
+   "excel_row": 115,
+   "batch_number": "P0928",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-28",
+   "qty_received_kg": 300,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5236004",
+   "expiry_date": "2026-10-05",
+   "notes": null,
+   "excel_balance_kg": 167.65
+  },
+  {
+   "excel_row": 116,
+   "batch_number": "Mil0928",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-28",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5236004",
+   "expiry_date": "2027-08-28",
+   "notes": null,
+   "excel_balance_kg": 1484.892
+  },
+  {
+   "excel_row": 117,
+   "batch_number": "Gr0928",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-09-28",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03876193",
+   "expiry_date": "2026-10-05",
+   "notes": null,
+   "excel_balance_kg": 53.011
+  },
+  {
+   "excel_row": 118,
+   "batch_number": "K0928",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-09-28",
+   "qty_received_kg": 4536,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00070574",
+   "expiry_date": "2026-10-28",
+   "notes": null,
+   "excel_balance_kg": 4536
+  },
+  {
+   "excel_row": 119,
+   "batch_number": "P0930",
+   "raw_material": "Pienas",
+   "received_date": "2026-09-30",
+   "qty_received_kg": 350,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5242172",
+   "expiry_date": "2026-10-06",
+   "notes": null,
+   "excel_balance_kg": 350
+  },
+  {
+   "excel_row": 120,
+   "batch_number": "Cuk0930",
+   "raw_material": "Cukrus",
+   "received_date": "2026-09-30",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5242172",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 1600
+  },
+  {
+   "excel_row": 121,
+   "batch_number": "Mil0930",
+   "raw_material": "Miltai",
+   "received_date": "2026-09-30",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5242172",
+   "expiry_date": "2027-09-22",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 122,
+   "batch_number": "Cib1001",
+   "raw_material": "Ciberžolė",
+   "received_date": "2026-10-01",
+   "qty_received_kg": 25,
+   "supplier": null,
+   "invoice_number": "SVA260016512",
+   "expiry_date": "2028-05-23",
+   "notes": null,
+   "excel_balance_kg": 25
+  },
+  {
+   "excel_row": 123,
+   "batch_number": "Gr1002",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-02",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03877358",
+   "expiry_date": "2026-10-12",
+   "notes": null,
+   "excel_balance_kg": 150
+  },
+  {
+   "excel_row": 124,
+   "batch_number": "Rmis1005",
+   "raw_material": "Riebalų mišinys",
+   "received_date": "2026-10-05",
+   "qty_received_kg": 1600,
+   "supplier": null,
+   "invoice_number": "PRD0003860",
+   "expiry_date": "2026-12-13",
+   "notes": null,
+   "excel_balance_kg": 1600
+  },
+  {
+   "excel_row": 125,
+   "batch_number": "K1005",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-10-05",
+   "qty_received_kg": 4536,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00070813",
+   "expiry_date": "2026-10-25",
+   "notes": null,
+   "excel_balance_kg": 4536
+  },
+  {
+   "excel_row": 126,
+   "batch_number": "Kvp1005",
+   "raw_material": "Kvapnioji medžiaga",
+   "received_date": "2026-10-05",
+   "qty_received_kg": 20,
+   "supplier": "UAB IZABELITA",
+   "invoice_number": "IZA42016386",
+   "expiry_date": "2028-10-30",
+   "notes": null,
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 127,
+   "batch_number": "Gr1007",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-07",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE02664831",
+   "expiry_date": "2026-10-17",
+   "notes": null,
+   "excel_balance_kg": 200
+  },
+  {
+   "excel_row": 128,
+   "batch_number": "P1007",
+   "raw_material": "Pienas",
+   "received_date": "2026-10-07",
+   "qty_received_kg": 350,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5258611",
+   "expiry_date": "2026-10-13",
+   "notes": null,
+   "excel_balance_kg": 350
+  },
+  {
+   "excel_row": 129,
+   "batch_number": "Mil1001",
+   "raw_material": "Miltai",
+   "received_date": "2026-10-07",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5258611",
+   "expiry_date": "2027-09-10",
+   "notes": null,
+   "excel_balance_kg": 1600
+  },
+  {
+   "excel_row": 130,
+   "batch_number": "Cuk1007",
+   "raw_material": "Cukrus",
+   "received_date": "2026-10-07",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5258611",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 131,
+   "batch_number": "Gr1009",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-09",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03878574",
+   "expiry_date": "2026-10-19",
+   "notes": null,
+   "excel_balance_kg": 150
+  },
+  {
+   "excel_row": 132,
+   "batch_number": "K1005-2",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-10-12",
+   "qty_received_kg": 1296,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00070969",
+   "expiry_date": "2026-11-11",
+   "notes": "Excel'yje nurodytas partijos Nr. K1005 kartojasi – pridėta priesaga -2",
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 133,
+   "batch_number": "K1005-3",
+   "raw_material": "Kiaušiniai",
+   "received_date": "2026-10-12",
+   "qty_received_kg": 4536,
+   "supplier": "OVOSTAR",
+   "invoice_number": "OEP00071028",
+   "expiry_date": "2026-11-11",
+   "notes": "Excel'yje nurodytas partijos Nr. K1005 kartojasi – pridėta priesaga -3",
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 134,
+   "batch_number": "P1012",
+   "raw_material": "Pienas",
+   "received_date": "2026-10-12",
+   "qty_received_kg": 200,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5268407",
+   "expiry_date": "2026-10-16",
+   "notes": null,
+   "excel_balance_kg": 200
+  },
+  {
+   "excel_row": 135,
+   "batch_number": "Mil1012",
+   "raw_material": "Miltai",
+   "received_date": "2026-10-12",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5268407",
+   "expiry_date": "2027-09-10",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 136,
+   "batch_number": "Cuk1012",
+   "raw_material": "Cukrus",
+   "received_date": "2026-10-12",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5268407",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 137,
+   "batch_number": "Gr1012",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-12",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01936710",
+   "expiry_date": "2026-10-19",
+   "notes": null,
+   "excel_balance_kg": 200
+  },
+  {
+   "excel_row": 138,
+   "batch_number": "P1014",
+   "raw_material": "Pienas",
+   "received_date": "2026-10-14",
+   "qty_received_kg": 400,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5274361",
+   "expiry_date": "2026-10-19",
+   "notes": null,
+   "excel_balance_kg": 400
+  },
+  {
+   "excel_row": 139,
+   "batch_number": "Mil1014",
+   "raw_material": "Miltai",
+   "received_date": "2026-10-14",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5274361",
+   "expiry_date": "2027-09-14",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 140,
+   "batch_number": "Cuk1014",
+   "raw_material": "Cukrus",
+   "received_date": "2026-10-14",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5274361",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 141,
+   "batch_number": "Gr0916-2",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-16",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03880326",
+   "expiry_date": "2026-10-25",
+   "notes": "Excel'yje nurodytas partijos Nr. Gr0916 kartojasi – pridėta priesaga -2",
+   "excel_balance_kg": 200
+  },
+  {
+   "excel_row": 142,
+   "batch_number": "P1019",
+   "raw_material": "Pienas",
+   "received_date": "2026-10-19",
+   "qty_received_kg": 300,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5284177",
+   "expiry_date": "2026-10-23",
+   "notes": null,
+   "excel_balance_kg": 300
+  },
+  {
+   "excel_row": 143,
+   "batch_number": "Cuk1019",
+   "raw_material": "Cukrus",
+   "received_date": "2026-10-19",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5284177",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": 800
+  },
+  {
+   "excel_row": 144,
+   "batch_number": "Mil1019",
+   "raw_material": "Miltai",
+   "received_date": "2026-10-19",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5284177",
+   "expiry_date": "2027-09-24",
+   "notes": null,
+   "excel_balance_kg": 1600
+  },
+  {
+   "excel_row": 145,
+   "batch_number": "Gr1019",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-19",
+   "qty_received_kg": 150,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE01939900",
+   "expiry_date": "2026-10-28",
+   "notes": null,
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 146,
+   "batch_number": "Gr1021",
+   "raw_material": "Grietinės mišinys",
+   "received_date": "2026-10-21",
+   "qty_received_kg": 200,
+   "supplier": "AB Žemaitijos pienas",
+   "invoice_number": "ZTE03882121",
+   "expiry_date": "2026-10-30",
+   "notes": null,
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 147,
+   "batch_number": "P1021",
+   "raw_material": "Pienas",
+   "received_date": "2026-10-21",
+   "qty_received_kg": 400,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5290410",
+   "expiry_date": "2026-10-27",
+   "notes": null,
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 148,
+   "batch_number": "Mil1021",
+   "raw_material": "Miltai",
+   "received_date": "2026-10-21",
+   "qty_received_kg": 1600,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5290410",
+   "expiry_date": "2027-10-05",
+   "notes": null,
+   "excel_balance_kg": null
+  },
+  {
+   "excel_row": 149,
+   "batch_number": "Cuk1021",
+   "raw_material": "Cukrus",
+   "received_date": "2026-10-21",
+   "qty_received_kg": 800,
+   "supplier": "UAB Sanitex",
+   "invoice_number": "SNT5290410",
+   "expiry_date": "2027-01-01",
+   "notes": null,
+   "excel_balance_kg": null
+  }
+ ],
+ "productions": [
+  {
+   "excel_row": 3,
+   "production_date": "2026-07-01",
+   "product": "Šakotis",
+   "qty_produced_kg": 267.52,
+   "l_week": "L276"
+  },
+  {
+   "excel_row": 4,
+   "production_date": "2026-07-01",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 137.2,
+   "l_week": "L276"
+  },
+  {
+   "excel_row": 5,
+   "production_date": "2026-07-02",
+   "product": "Šakotis",
+   "qty_produced_kg": 280.28,
+   "l_week": "L276"
+  },
+  {
+   "excel_row": 6,
+   "production_date": "2026-07-02",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 142.1,
+   "l_week": "L276"
+  },
+  {
+   "excel_row": 7,
+   "production_date": "2026-07-03",
+   "product": "Šakotis",
+   "qty_produced_kg": 213.64,
+   "l_week": "L276"
+  },
+  {
+   "excel_row": 8,
+   "production_date": "2026-07-03",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 161.7,
+   "l_week": "L276"
+  },
+  {
+   "excel_row": 9,
+   "production_date": "2026-07-07",
+   "product": "Šakotis",
+   "qty_produced_kg": 181.3,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 10,
+   "production_date": "2026-07-07",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 11,
+   "production_date": "2026-07-08",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 178.36,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 12,
+   "production_date": "2026-07-08",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 13,
+   "production_date": "2026-07-09",
+   "product": "Šakotis",
+   "qty_produced_kg": 176.4,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 14,
+   "production_date": "2026-07-09",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 15,
+   "production_date": "2026-07-10",
+   "product": "Šakotis",
+   "qty_produced_kg": 98,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 16,
+   "production_date": "2026-07-10",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 176.4,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 17,
+   "production_date": "2026-07-12",
+   "product": "Šakotis",
+   "qty_produced_kg": 73.5,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 18,
+   "production_date": "2026-07-12",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 58.8,
+   "l_week": "L286"
+  },
+  {
+   "excel_row": 19,
+   "production_date": "2026-07-13",
+   "product": "Šakotis",
+   "qty_produced_kg": 117.6,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 20,
+   "production_date": "2026-07-13",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 21,
+   "production_date": "2026-07-14",
+   "product": "Šakotis",
+   "qty_produced_kg": 117.6,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 22,
+   "production_date": "2026-07-14",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 73.5,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 23,
+   "production_date": "2026-07-15",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 166.6,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 24,
+   "production_date": "2026-07-15",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 127.4,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 25,
+   "production_date": "2026-07-16",
+   "product": "Šakotis",
+   "qty_produced_kg": 117.6,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 26,
+   "production_date": "2026-07-16",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 27,
+   "production_date": "2026-07-16",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 83.3,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 28,
+   "production_date": "2026-07-17",
+   "product": "Šakotis",
+   "qty_produced_kg": 107.8,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 29,
+   "production_date": "2026-07-17",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 30,
+   "production_date": "2026-07-18",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 88.2,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 31,
+   "production_date": "2026-07-19",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 117.6,
+   "l_week": "L296"
+  },
+  {
+   "excel_row": 32,
+   "production_date": "2026-07-20",
+   "product": "Šakotis",
+   "qty_produced_kg": 213.64,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 33,
+   "production_date": "2026-07-20",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 34,
+   "production_date": "2026-07-21",
+   "product": "Šakotis",
+   "qty_produced_kg": 230.3,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 35,
+   "production_date": "2026-07-21",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 162.68,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 36,
+   "production_date": "2026-07-22",
+   "product": "Šakotis",
+   "qty_produced_kg": 253.82,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 37,
+   "production_date": "2026-07-22",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 235.2,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 38,
+   "production_date": "2026-07-23",
+   "product": "Šakotis",
+   "qty_produced_kg": 215.6,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 39,
+   "production_date": "2026-07-23",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 235.2,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 40,
+   "production_date": "2026-07-24",
+   "product": "Šakotis",
+   "qty_produced_kg": 233.24,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 41,
+   "production_date": "2026-07-24",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 235.2,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 42,
+   "production_date": "2026-07-26",
+   "product": "Šakotis",
+   "qty_produced_kg": 123.48,
+   "l_week": "L306"
+  },
+  {
+   "excel_row": 43,
+   "production_date": "2026-07-27",
+   "product": "Šakotis",
+   "qty_produced_kg": 285.18,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 44,
+   "production_date": "2026-07-27",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 240.1,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 45,
+   "production_date": "2026-07-28",
+   "product": "Šakotis",
+   "qty_produced_kg": 342.02,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 46,
+   "production_date": "2026-07-28",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 235.2,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 47,
+   "production_date": "2026-07-29",
+   "product": "Šakotis",
+   "qty_produced_kg": 265.58,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 48,
+   "production_date": "2026-07-29",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 49,
+   "production_date": "2026-07-30",
+   "product": "Šakotis",
+   "qty_produced_kg": 200.9,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 50,
+   "production_date": "2026-07-30",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 235.2,
+   "l_week": "L316"
+  },
+  {
+   "excel_row": 51,
+   "production_date": "2026-08-02",
+   "product": "Šakotis",
+   "qty_produced_kg": 227.36,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 52,
+   "production_date": "2026-08-03",
+   "product": "Šakotis",
+   "qty_produced_kg": 313.6,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 53,
+   "production_date": "2026-08-03",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 54,
+   "production_date": "2026-08-04",
+   "product": "Šakotis",
+   "qty_produced_kg": 273.42,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 55,
+   "production_date": "2026-08-04",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 56,
+   "production_date": "2026-08-05",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 57,
+   "production_date": "2026-08-05",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 262.64,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 58,
+   "production_date": "2026-08-06",
+   "product": "Šakotis",
+   "qty_produced_kg": 243.04,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 59,
+   "production_date": "2026-08-06",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 137.2,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 60,
+   "production_date": "2026-08-07",
+   "product": "Šakotis",
+   "qty_produced_kg": 107.8,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 61,
+   "production_date": "2026-08-07",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 137.2,
+   "l_week": "L326"
+  },
+  {
+   "excel_row": 62,
+   "production_date": "2026-08-09",
+   "product": "Šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 63,
+   "production_date": "2026-08-10",
+   "product": "Šakotis",
+   "qty_produced_kg": 308.7,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 64,
+   "production_date": "2026-08-10",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 65,
+   "production_date": "2026-08-10",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 29.4,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 66,
+   "production_date": "2026-08-11",
+   "product": "Šakotis",
+   "qty_produced_kg": 288.12,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 67,
+   "production_date": "2026-08-11",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 68,
+   "production_date": "2026-08-12",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 69,
+   "production_date": "2026-08-12",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 285.18,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 70,
+   "production_date": "2026-08-13",
+   "product": "Šakotis",
+   "qty_produced_kg": 202.86,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 71,
+   "production_date": "2026-08-13",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 72,
+   "production_date": "2026-08-13",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 78.4,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 73,
+   "production_date": "2026-08-14",
+   "product": "Šakotis",
+   "qty_produced_kg": 186.2,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 74,
+   "production_date": "2026-08-14",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 75,
+   "production_date": "2026-08-16",
+   "product": "Šakotis",
+   "qty_produced_kg": 173.46,
+   "l_week": "L336"
+  },
+  {
+   "excel_row": 76,
+   "production_date": "2026-08-17",
+   "product": "Šakotis",
+   "qty_produced_kg": 192.08,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 77,
+   "production_date": "2026-08-17",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 78,
+   "production_date": "2026-08-17",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 39.2,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 79,
+   "production_date": "2026-08-18",
+   "product": "Šakotis",
+   "qty_produced_kg": 192.08,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 80,
+   "production_date": "2026-08-18",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 81,
+   "production_date": "2026-08-19",
+   "product": "Šakotis",
+   "qty_produced_kg": 179.34,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 82,
+   "production_date": "2026-08-19",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 83,
+   "production_date": "2026-08-20",
+   "product": "Šakotis",
+   "qty_produced_kg": 186.2,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 84,
+   "production_date": "2026-08-20",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 85,
+   "production_date": "2026-08-21",
+   "product": "Šakotis",
+   "qty_produced_kg": 206.78,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 86,
+   "production_date": "2026-08-21",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L346"
+  },
+  {
+   "excel_row": 87,
+   "production_date": "2026-08-24",
+   "product": "Šakotis",
+   "qty_produced_kg": 128.38,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 88,
+   "production_date": "2026-08-24",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 89,
+   "production_date": "2026-08-25",
+   "product": "Šakotis",
+   "qty_produced_kg": 239.12,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 90,
+   "production_date": "2026-08-25",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 166.6,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 91,
+   "production_date": "2026-08-26",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 147,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 92,
+   "production_date": "2026-08-26",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 252.84,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 93,
+   "production_date": "2026-08-27",
+   "product": "Šakotis",
+   "qty_produced_kg": 242.25,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 94,
+   "production_date": "2026-08-27",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 95,
+   "production_date": "2026-08-28",
+   "product": "Šakotis",
+   "qty_produced_kg": 259.7,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 96,
+   "production_date": "2026-08-28",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L356"
+  },
+  {
+   "excel_row": 97,
+   "production_date": "2026-08-31",
+   "product": "Šakotis",
+   "qty_produced_kg": 277.34,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 98,
+   "production_date": "2026-08-31",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 99,
+   "production_date": "2026-09-01",
+   "product": "Šakotis",
+   "qty_produced_kg": 320.46,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 100,
+   "production_date": "2026-09-01",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 161.7,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 101,
+   "production_date": "2026-09-02",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 102,
+   "production_date": "2026-09-02",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 456.68,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 103,
+   "production_date": "2026-09-03",
+   "product": "Šakotis",
+   "qty_produced_kg": 467.46,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 104,
+   "production_date": "2026-09-03",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 105,
+   "production_date": "2026-09-04",
+   "product": "Šakotis",
+   "qty_produced_kg": 447.86,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 106,
+   "production_date": "2026-09-04",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245.8,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 107,
+   "production_date": "2026-09-06",
+   "product": "Šakotis",
+   "qty_produced_kg": 332.22,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 108,
+   "production_date": "2026-09-06",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L366"
+  },
+  {
+   "excel_row": 109,
+   "production_date": "2026-09-07",
+   "product": "Šakotis",
+   "qty_produced_kg": 592.9,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 110,
+   "production_date": "2026-09-07",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 111,
+   "production_date": "2026-09-08",
+   "product": "Šakotis",
+   "qty_produced_kg": 623.28,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 112,
+   "production_date": "2026-09-08",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245.8,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 113,
+   "production_date": "2026-09-09",
+   "product": "Šakotis",
+   "qty_produced_kg": 196,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 114,
+   "production_date": "2026-09-09",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245.8,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 115,
+   "production_date": "2026-09-09",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 382.2,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 116,
+   "production_date": "2026-09-10",
+   "product": "Šakotis",
+   "qty_produced_kg": 643.86,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 117,
+   "production_date": "2026-09-10",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245.8,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 118,
+   "production_date": "2026-09-11",
+   "product": "Šakotis",
+   "qty_produced_kg": 526.26,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 119,
+   "production_date": "2026-09-12",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 235.2,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 120,
+   "production_date": "2026-09-13",
+   "product": "Šakotis",
+   "qty_produced_kg": 101.92,
+   "l_week": "L376"
+  },
+  {
+   "excel_row": 121,
+   "production_date": "2026-09-14",
+   "product": "Šakotis",
+   "qty_produced_kg": 662.48,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 122,
+   "production_date": "2026-09-14",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 274.4,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 123,
+   "production_date": "2026-09-15",
+   "product": "Šakotis",
+   "qty_produced_kg": 616.42,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 124,
+   "production_date": "2026-09-15",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 274.4,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 125,
+   "production_date": "2026-09-16",
+   "product": "Šakotis",
+   "qty_produced_kg": 445.9,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 126,
+   "production_date": "2026-09-16",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 279.3,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 127,
+   "production_date": "2026-09-16",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 272.44,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 128,
+   "production_date": "2026-09-17",
+   "product": "Šakotis",
+   "qty_produced_kg": 711.48,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 129,
+   "production_date": "2026-09-17",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 245.8,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 130,
+   "production_date": "2026-09-18",
+   "product": "Šakotis",
+   "qty_produced_kg": 538.02,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 131,
+   "production_date": "2026-09-18",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 274.4,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 132,
+   "production_date": "2026-09-20",
+   "product": "Šakotis",
+   "qty_produced_kg": 245,
+   "l_week": "L386"
+  },
+  {
+   "excel_row": 133,
+   "production_date": "2026-09-21",
+   "product": "Šakotis",
+   "qty_produced_kg": 727.16,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 134,
+   "production_date": "2026-09-21",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 251.86,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 135,
+   "production_date": "2026-09-22",
+   "product": "Šakotis",
+   "qty_produced_kg": 793.8,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 136,
+   "production_date": "2026-09-22",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 176.4,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 137,
+   "production_date": "2026-09-23",
+   "product": "Šakotis",
+   "qty_produced_kg": 450.8,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 138,
+   "production_date": "2026-09-23",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 278.32,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 139,
+   "production_date": "2026-09-23",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 347.9,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 140,
+   "production_date": "2026-09-24",
+   "product": "Šakotis",
+   "qty_produced_kg": 784,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 141,
+   "production_date": "2026-09-24",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 176.4,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 142,
+   "production_date": "2026-09-25",
+   "product": "Šakotis",
+   "qty_produced_kg": 735,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 143,
+   "production_date": "2026-09-25",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 156.8,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 144,
+   "production_date": "2026-09-26",
+   "product": "Šakotis",
+   "qty_produced_kg": 78.4,
+   "l_week": "L396"
+  },
+  {
+   "excel_row": 145,
+   "production_date": "2026-09-28",
+   "product": "Šakotis",
+   "qty_produced_kg": 780.08,
+   "l_week": "L406"
+  },
+  {
+   "excel_row": 146,
+   "production_date": "2026-09-28",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 279.3,
+   "l_week": "L406"
+  },
+  {
+   "excel_row": 147,
+   "production_date": "2026-09-29",
+   "product": "Šakotis",
+   "qty_produced_kg": 803.6,
+   "l_week": "L406"
+  },
+  {
+   "excel_row": 148,
+   "production_date": "2026-09-29",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 280.28,
+   "l_week": "L406"
+  },
+  {
+   "excel_row": 149,
+   "production_date": "2026-09-30",
+   "product": "Šakotis",
+   "qty_produced_kg": 350.84,
+   "l_week": "L406"
+  },
+  {
+   "excel_row": 150,
+   "production_date": "2026-09-30",
+   "product": "Trapus šakotis",
+   "qty_produced_kg": 274.4,
+   "l_week": "L406"
+  },
+  {
+   "excel_row": 151,
+   "production_date": "2026-09-30",
+   "product": "Šakotis su sviestu",
+   "qty_produced_kg": 313.6,
+   "l_week": "L406"
+  }
+ ]
+}

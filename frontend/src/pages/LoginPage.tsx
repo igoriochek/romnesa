@@ -21,9 +21,9 @@ export default function LoginPage({ onLogin }: { onLogin: (user: User) => void }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-100 px-4 text-stone-800">
-      <form onSubmit={submit} className="w-full max-w-sm rounded-xl bg-white p-6 shadow-sm ring-1 ring-stone-200">
-        <h1 className="text-xl font-semibold tracking-tight text-amber-900">UAB Romnesa</h1>
+    <div className="flex min-h-screen items-center justify-center bg-[#f6f3ef] px-4 text-stone-800">
+      <form onSubmit={submit} className="w-full max-w-sm overflow-hidden rounded-xl border-t-8 border-[#7a3410] bg-white p-6 shadow-sm ring-1 ring-stone-200">
+        <h1 className="text-xl font-semibold tracking-tight text-amber-900">UAB „Romnesa“</h1>
         <p className="mb-5 text-sm text-stone-500">Šakočių apskaita — prisijungimas</p>
 
         <div className="space-y-3">

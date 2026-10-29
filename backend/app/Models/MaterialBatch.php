@@ -25,12 +25,18 @@ class MaterialBatch extends Model
     /** Dienos iki galiojimo pabaigos (neigiamos - pasibaigusi). Nuo šiandienos, ne nuo dabartinio laiko. */
     public function daysToExpiry(): int
     {
-        return (int) today()->diffInDays($this->expiry_date, false);
+        // šiandiena pagal Lietuvos laiką (serveris dirba UTC - po vidurnakčio būtų vakar)
+        return (int) today('Europe/Vilnius')->diffInDays($this->expiry_date->copy()->startOfDay(), false);
     }
 
     public function rawMaterial()
     {
         return $this->belongsTo(RawMaterial::class);
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function usages()

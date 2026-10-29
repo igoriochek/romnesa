@@ -6,16 +6,19 @@ import {
 } from '../api'
 import { Badge, Card, Err, Field, btnCls, fmtKg, inputCls } from '../ui'
 
-function AddRow({ onAdd, placeholder }: { onAdd: (name: string) => Promise<void>; placeholder: string }) {
+/** withCode - žaliavoms papildomai kodas (pvz. K0713). */
+function AddRow({ onAdd, placeholder, withCode }: { onAdd: (name: string, code?: string) => Promise<void>; placeholder: string; withCode?: boolean }) {
   const [name, setName] = useState('')
+  const [code, setCode] = useState('')
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
-    await onAdd(name.trim())
-    setName('')
+    await onAdd(name.trim(), code.trim() || undefined)
+    setName(''); setCode('')
   }
   return (
     <form onSubmit={submit} className="mt-2 flex gap-2">
+      {withCode && <input className={`${inputCls} w-28`} value={code} onChange={(e) => setCode(e.target.value)} placeholder="Kodas" />}
       <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder={placeholder} />
       <button className={btnCls}>+</button>
     </form>
@@ -44,9 +47,9 @@ export default function ClassifiersPage() {
 
   useEffect(() => { load() }, [])
 
-  const addClassifier = (resource: string) => async (name: string) => {
+  const addClassifier = (resource: string) => async (name: string, code?: string) => {
     setErr(null)
-    try { await createClassifier(resource, { name }); await load() } catch (e) { setErr(errText(e)) }
+    try { await createClassifier(resource, code ? { name, code } : { name }); await load() } catch (e) { setErr(errText(e)) }
   }
 
   const checkWeight = async (e: FormEvent) => {
@@ -60,9 +63,9 @@ export default function ClassifiersPage() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Err msg={err} />
+      {err && <div className="md:col-span-2"><Err msg={err} /></div>}
 
-      <Card title="Receptūros" actions={<Badge tone="amber">{recipes.length}</Badge>}>
+      <Card title="Receptūros" icon="list" actions={<Badge tone="amber">{recipes.length}</Badge>}>
         <div className="space-y-3">
           {recipes.map((r) => (
             <div key={r.id} className="rounded-lg border border-stone-200 p-3">
@@ -84,7 +87,7 @@ export default function ClassifiersPage() {
       </Card>
 
       <div className="grid gap-6">
-        <Card title="Fasavimo rūšies parinkimas pagal svorį">
+        <Card title="Fasavimo rūšies parinkimas pagal svorį" icon="tag">
           <form onSubmit={checkWeight} className="flex items-end gap-2">
             <Field label="Svoris, kg"><input type="number" step="0.01" min="0.01" className={inputCls} value={weight} onChange={(e) => setWeight(e.target.value)} required /></Field>
             <button className={btnCls}>Rasti</button>
@@ -92,14 +95,19 @@ export default function ClassifiersPage() {
           {suggested && <p className="mt-2 text-sm font-medium text-amber-900">{suggested}</p>}
         </Card>
 
-        <Card title="Žaliavos" actions={<Badge>{materials.length}</Badge>}>
+        <Card title="Žaliavos" icon="leaf" actions={<Badge>{materials.length}</Badge>}>
           <ul className="text-sm">
-            {materials.map((m) => <li key={m.id} className="border-b border-stone-100 py-1 last:border-0">{m.name}</li>)}
+            {materials.map((m) => (
+              <li key={m.id} className="flex justify-between gap-2 border-b border-stone-100 py-1 last:border-0">
+                <span>{m.code && <span className="mr-2 font-mono text-xs text-stone-500">{m.code}</span>}{m.name}</span>
+                {!m.requires_batch && <Badge>be partijos</Badge>}
+              </li>
+            ))}
           </ul>
-          <AddRow onAdd={addClassifier('raw-materials')} placeholder="Nauja žaliava…" />
+          <AddRow onAdd={addClassifier('raw-materials')} placeholder="Nauja žaliava…" withCode />
         </Card>
 
-        <Card title="Parduotuvės" actions={<Badge>{shops.length}</Badge>}>
+        <Card title="Parduotuvės" icon="truck" actions={<Badge>{shops.length}</Badge>}>
           <ul className="text-sm">
             {shops.map((s) => <li key={s.id} className="border-b border-stone-100 py-1 last:border-0">{s.name}</li>)}
           </ul>
@@ -108,13 +116,13 @@ export default function ClassifiersPage() {
       </div>
 
       <div className="grid gap-6">
-        <Card title="Gamybinės rūšys" actions={<Badge>{prods.length}</Badge>}>
+        <Card title="Gamybinės rūšys" icon="factory" actions={<Badge>{prods.length}</Badge>}>
           <ul className="text-sm">
             {prods.map((p) => <li key={p.id} className="border-b border-stone-100 py-1 last:border-0">{p.name}</li>)}
           </ul>
         </Card>
 
-        <Card title="Fasavimo rūšys" actions={<Badge>{packed.length}</Badge>}>
+        <Card title="Fasavimo rūšys" icon="box" actions={<Badge>{packed.length}</Badge>}>
           <ul className="text-sm">
             {packed.map((p) => (
               <li key={p.id} className="flex justify-between border-b border-stone-100 py-1 last:border-0">
@@ -127,14 +135,14 @@ export default function ClassifiersPage() {
           </ul>
         </Card>
 
-        <Card title="Sandėliai" actions={<Badge>{warehouses.length}</Badge>}>
+        <Card title="Sandėliai" icon="box" actions={<Badge>{warehouses.length}</Badge>}>
           <ul className="text-sm">
             {warehouses.map((w) => <li key={w.id} className="border-b border-stone-100 py-1 last:border-0">{w.name}</li>)}
           </ul>
           <AddRow onAdd={addClassifier('warehouses')} placeholder="Naujas sandėlis…" />
         </Card>
 
-        <Card title="L savaitės" actions={<Badge>{lweeks.length}</Badge>}>
+        <Card title="L savaitės" icon="list" actions={<Badge>{lweeks.length}</Badge>}>
           <p className="text-sm text-stone-600">{lweeks.map((w) => w.code).join(', ')}</p>
         </Card>
       </div>

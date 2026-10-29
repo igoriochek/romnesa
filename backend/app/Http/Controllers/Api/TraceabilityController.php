@@ -21,16 +21,20 @@ class TraceabilityController extends Controller
     /** Partija -> panaudojimai gamyboje -> L savaitės -> išvežimai. */
     public function batch(int $batchId)
     {
-        $batch = MaterialBatch::with('rawMaterial')->findOrFail($batchId);
+        $batch = MaterialBatch::with(['rawMaterial', 'warehouse'])->findOrFail($batchId);
 
         $usages = MaterialUsage::with(['production.productionProduct', 'production.lWeek'])
             ->where('material_batch_id', $batchId)->get();
 
         $lWeekIds = $usages->pluck('production.l_week_id')->filter()->unique()->values();
+        // tik tie judėjimai, kurių produktas pagamintas iš šios partijos (ta pati L savaitė IR gamybinė rūšis)
+        $made = $usages->map(fn ($u) => $u->production?->l_week_id.':'.$u->production?->production_product_id)->unique();
 
         $shipments = ProductMovement::with(['shop', 'warehouseFrom', 'warehouseTo', 'packedProduct'])
             ->whereIn('l_week_id', $lWeekIds)
-            ->orderBy('movement_date')->get();
+            ->orderBy('movement_date')->get()
+            ->filter(fn ($m) => $made->contains($m->l_week_id.':'.$m->packedProduct?->production_product_id))
+            ->values();
 
         return [
             'batch'      => array_merge($batch->toArray(), ['balance_kg' => $this->stock->batchBalance($batch)]),
