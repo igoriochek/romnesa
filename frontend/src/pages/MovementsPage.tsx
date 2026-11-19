@@ -10,10 +10,11 @@ const TYPES: Record<ProductMovement['movement_type'], string> = {
   pack_in: 'Fasavimo papildymas',
   move: 'Vidinis judėjimas',
   ship_out: 'Išvežimas į parduotuvę',
+  repack: 'Perpakavimas (išimta)',
 }
 
 const TYPE_TONE: Record<string, 'green' | 'amber' | 'stone'> = {
-  pack_in: 'green', move: 'amber', ship_out: 'stone',
+  pack_in: 'green', move: 'amber', ship_out: 'stone', repack: 'amber',
 }
 
 export default function MovementsPage() {
@@ -76,6 +77,7 @@ export default function MovementsPage() {
   const dest = (m: ProductMovement) =>
     m.movement_type === 'pack_in' ? m.warehouse_to?.name
       : m.movement_type === 'move' ? `${m.warehouse_from?.name} → ${m.warehouse_to?.name}`
+      : m.movement_type === 'repack' ? `${m.warehouse_from?.name} → perpakuota`
       : `${m.warehouse_from?.name} → ${m.shop?.name}`
 
   const set = (k: string, v: string) => setF({ ...f, [k]: v })
@@ -123,7 +125,7 @@ export default function MovementsPage() {
           <Field label="Data"><input type="date" className={inputCls} value={f.movement_date} onChange={(e) => set('movement_date', e.target.value)} required /></Field>
           <Field label="Tipas">
             <select className={inputCls} value={f.movement_type} onChange={(e) => set('movement_type', e.target.value)}>
-              {Object.entries(TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {Object.entries(TYPES).filter(([k]) => k !== 'repack').map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </Field>
           <Field label="Fasavimo rūšis">

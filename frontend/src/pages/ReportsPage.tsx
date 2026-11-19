@@ -52,6 +52,9 @@ function ReportTable<T>({ cols, rows, total, rowKey }: {
   )
 }
 
+/** Sąskaitos Nr. - paryškintas kaip naujame dizaine. */
+const InvoiceNo = ({ n }: { n?: string | null }) => (n ? <b className="whitespace-nowrap">{n}</b> : <>—</>)
+
 const sum = <T,>(rows: T[], f: (r: T) => number | null | undefined) => rows.reduce((s, r) => s + Number(f(r) ?? 0), 0)
 
 function BatchesReport({ rows, balances }: { rows: MaterialBatch[]; balances: boolean }) {
@@ -60,6 +63,7 @@ function BatchesReport({ rows, balances }: { rows: MaterialBatch[]; balances: bo
     { header: 'Partijos Nr.', render: (b) => b.batch_number },
     { header: 'Gauta', render: (b) => fmtDate(b.received_date) },
     { header: 'Tiekėjas', render: (b) => b.supplier ?? '—' },
+    { header: 'Sąskaitos Nr.', render: (b) => <InvoiceNo n={b.invoice_number} /> },
     { header: 'Gauta kg', num: true, render: (b) => fmtKg(b.qty_received_kg) },
     { header: '€/kg', num: true, render: (b) => fmtUnitEur(b.unit_cost_eur) },
     { header: 'Vertė €', num: true, render: (b) => fmtEur(b.total_cost_eur) },
@@ -70,7 +74,7 @@ function BatchesReport({ rows, balances }: { rows: MaterialBatch[]; balances: bo
     { header: 'Galioja iki', render: (b) => fmtDate(b.expiry_date) },
     { header: 'Liko d.', num: true, render: (b) => ((b.days_to_expiry ?? 0) < 0 ? <b className="text-red-700">{b.days_to_expiry}</b> : b.days_to_expiry) },
   ]
-  const shown = balances ? cols.filter((c) => !['Tiekėjas', 'Vertė €', 'Sunaudota kg', 'Perduota / nurašyta kg'].includes(c.header)) : cols
+  const shown = balances ? cols.filter((c) => !['Tiekėjas', 'Sąskaitos Nr.', 'Vertė €', 'Sunaudota kg', 'Perduota / nurašyta kg'].includes(c.header)) : cols
   const totals: Record<string, ReactNode> = {
     'Žaliava': 'Iš viso',
     'Gauta kg': fmtKg(sum(rows, (b) => b.qty_received_kg)),
@@ -199,7 +203,7 @@ function CostReport({ data }: { data: CostData }) {
 function TraceReport({ lw, batch }: { lw: TraceLWeekResult | null; batch: TraceBatchResult | null }) {
   const mvCols: Column<TraceLWeekResult['movements'][number]>[] = [
     { header: 'Data', render: (m) => fmtDate(m.movement_date) },
-    { header: 'Tipas', render: (m) => ({ pack_in: 'Fasavimas', move: 'Perkėlimas', ship_out: 'Išvežimas' } as Record<string, string>)[m.movement_type] ?? m.movement_type },
+    { header: 'Tipas', render: (m) => ({ pack_in: 'Fasavimas', move: 'Perkėlimas', ship_out: 'Išvežimas', repack: 'Perpakavimas' } as Record<string, string>)[m.movement_type] ?? m.movement_type },
     { header: 'Produktas', render: (m) => m.packed_product?.name },
     { header: 'Iš', render: (m) => m.warehouse_from?.name ?? '—' },
     { header: 'Į', render: (m) => m.warehouse_to?.name ?? m.shop?.name ?? '—' },
@@ -219,6 +223,7 @@ function TraceReport({ lw, batch }: { lw: TraceLWeekResult | null; batch: TraceB
           { header: 'Gauta', render: (u) => fmtDate(u.material_batch?.received_date) },
           { header: 'Galioja iki', render: (u) => fmtDate(u.material_batch?.expiry_date) },
           { header: 'Tiekėjas', render: (u) => u.material_batch?.supplier ?? '—' },
+          { header: 'Sąskaitos Nr.', render: (u) => <InvoiceNo n={u.material_batch?.invoice_number} /> },
           { header: 'Kg', num: true, render: (u) => fmtKg(u.qty_kg) },
         ]}
         rows={lw.materials}
@@ -234,6 +239,8 @@ function TraceReport({ lw, batch }: { lw: TraceLWeekResult | null; batch: TraceB
       <p className="text-sm">
         Partija <b>{batch.batch.batch_number}</b> · {batch.batch.raw_material?.name} · gauta {fmtDate(batch.batch.received_date)}{' '}
         {fmtKg(batch.batch.qty_received_kg)} kg · galioja iki {fmtDate(batch.batch.expiry_date)} · likutis {fmtKg(batch.batch.balance_kg)} kg
+        {batch.batch.supplier && <> · tiekėjas {batch.batch.supplier}</>}
+        {batch.batch.invoice_number && <> · sąskaitos Nr. <b>{batch.batch.invoice_number}</b></>}
       </p>
       <ReportTable<MaterialUsage>
         cols={[

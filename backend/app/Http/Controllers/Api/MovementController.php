@@ -94,6 +94,9 @@ class MovementController extends Controller
         if ($movement->is_locked) {
             return response()->json(['message' => 'Įrašas įspajamotas (užrakintas) – naikinti negalima.'], 423);
         }
+        if (\App\Models\Packing::where('product_movement_id', $movement->id)->orWhere('source_movement_id', $movement->id)->exists()) {
+            return response()->json(['message' => 'Judėjimas sukurtas pakavimo metu – trinkite pakavimo įrašą skiltyje „Pakavimas“.'], 422);
+        }
         // Atšaukus papildymą sandėlio likutis negali tapti neigiamas (produktas jau perkeltas/išvežtas)
         if ($movement->warehouse_to_id) {
             $left = $this->stock->balance($movement->packed_product_id, $movement->l_week_id, $movement->warehouse_to_id);

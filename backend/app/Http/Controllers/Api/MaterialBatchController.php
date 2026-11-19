@@ -130,14 +130,18 @@ class MaterialBatchController extends Controller
         return MaterialBatch::findOrFail($id)->toggleLock();
     }
 
-    public function destroy(int $id)
+    public function destroy(Request $request, int $id)
     {
         $batch = MaterialBatch::findOrFail($id);
         if ($batch->is_locked) {
             return response()->json(['message' => 'Partija įspajamota (užrakinta) – naikinti negalima.'], 423);
         }
+        // klaidingai įvesta panaudota partija: sunaudojimas perkeliamas į kitas partijas (FIFO)
+        if ($request->boolean('reallocate') && $batch->usages()->exists()) {
+            return app(\App\Services\ProductionService::class)->deleteBatchWithReallocation($batch);
+        }
         if ($batch->usages()->exists() || $batch->outflows()->exists()) {
-            return response()->json(['message' => 'Partija panaudota gamyboje/perdavimuose – naikinti negalima, tik nurašyti likutį.'], 422);
+            return response()->json(['message' => 'Partija panaudota gamyboje/perdavimuose – naikinti galima tik perskirsčius sunaudojimą į kitas partijas.'], 422);
         }
         $batch->delete();
         return response()->noContent();

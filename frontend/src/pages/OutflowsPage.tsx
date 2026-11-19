@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, WRITEOFF_REASONS, type MaterialBatch, type MaterialOutflow, type WriteoffReason } from '../api'
+import { createOutflow, deleteRecord, getBatches, getOutflows, toggleLock, errText, OUTFLOW_TYPES, WRITEOFF_REASONS, type MaterialBatch, type MaterialOutflow, type OutflowType, type WriteoffReason } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtEur, fmtKg, inputCls, todayIso } from '../ui'
+
+const TYPE_TONE: Record<OutflowType, 'red' | 'blue' | 'green'> = { writeoff: 'red', transfer: 'blue', kitchen: 'green' }
+const DEST_LABEL: Record<OutflowType, string> = { writeoff: 'Paaiškinimas', transfer: 'Kam (cechas)', kitchen: 'Kam (virtuvė)' }
 
 // Perduoti / nurašyti galima tik iš neužrakintos partijos su likučiu (nebegaliojančią - nurašyti)
 const available = (b: MaterialBatch) => (b.balance_kg ?? 0) > 0 && !b.is_locked
@@ -12,7 +15,7 @@ export default function OutflowsPage() {
   const [busy, setBusy] = useState(false)
   const [f, setF] = useState({
     outflow_date: todayIso(),
-    material_batch_id: '', qty_kg: '', outflow_type: 'transfer', reason: '' as WriteoffReason | '',
+    material_batch_id: '', qty_kg: '', outflow_type: 'writeoff' as OutflowType, reason: '' as WriteoffReason | '',
     destination: '', document_number: '', notes: '',
   })
 
@@ -53,9 +56,7 @@ export default function OutflowsPage() {
           cols={[
             { header: 'Data', render: (o) => fmtDate(o.outflow_date) },
             { header: 'Tipas', render: (o) => (
-                <Badge tone={o.outflow_type === 'transfer' ? 'amber' : 'red'}>
-                  {o.outflow_type === 'transfer' ? 'Perdavimas' : 'Nurašymas'}
-                </Badge>
+                <Badge tone={TYPE_TONE[o.outflow_type] ?? 'stone'}>{OUTFLOW_TYPES[o.outflow_type] ?? o.outflow_type}</Badge>
               ) },
             { header: 'Partija', render: (o) => o.material_batch?.batch_number },
             { header: 'Žaliava', render: (o) => o.material_batch?.raw_material?.name },
@@ -92,9 +93,12 @@ export default function OutflowsPage() {
           {selected && <p className="text-xs text-stone-500">Likučio limitas: {fmtKg(selected.balance_kg)} kg</p>}
           <Field label="Kiekis, kg"><input type="number" step="0.001" min="0.001" max={selected?.balance_kg} className={inputCls} value={f.qty_kg} onChange={(e) => setF({ ...f, qty_kg: e.target.value })} required /></Field>
           <Field label="Tipas">
-            <select className={inputCls} value={f.outflow_type} onChange={(e) => setF({ ...f, outflow_type: e.target.value })}>
-              <option value="transfer">Perdavimas kitam cechui</option>
-              <option value="writeoff">Nurašymas</option>
+            <select className={inputCls} value={f.outflow_type}
+              onChange={(e) => {
+                const t = e.target.value as OutflowType
+                setF({ ...f, outflow_type: t, destination: t === 'kitchen' && !f.destination ? 'Virtuvė' : f.destination })
+              }}>
+              {Object.entries(OUTFLOW_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </Field>
           {f.outflow_type === 'writeoff' && (
@@ -105,7 +109,7 @@ export default function OutflowsPage() {
               </select>
             </Field>
           )}
-          <Field label={f.outflow_type === 'writeoff' ? 'Paaiškinimas' : 'Kam (cechas)'}><input className={inputCls} value={f.destination} onChange={(e) => setF({ ...f, destination: e.target.value })} placeholder="Cechas arba priežastis" /></Field>
+          <Field label={DEST_LABEL[f.outflow_type]}><input className={inputCls} value={f.destination} onChange={(e) => setF({ ...f, destination: e.target.value })} placeholder="Cechas arba priežastis" /></Field>
           <Field label="Dok. Nr."><input className={inputCls} value={f.document_number} onChange={(e) => setF({ ...f, document_number: e.target.value })} /></Field>
           <button className={btnCls} disabled={busy}>{busy ? 'Saugoma…' : 'Registruoti'}</button>
           <Err msg={err} />

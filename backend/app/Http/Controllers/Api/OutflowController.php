@@ -34,7 +34,7 @@ class OutflowController extends Controller
             'outflow_date'      => 'required|date',
             'material_batch_id' => 'required|exists:material_batches,id',
             'qty_kg'            => 'required|numeric|gt:0',
-            'outflow_type'      => 'required|in:transfer,writeoff',
+            'outflow_type'      => 'required|in:' . implode(',', array_keys(MaterialOutflow::TYPES)),
             'reason'            => ['nullable', 'required_if:outflow_type,writeoff', Rule::in(array_keys(MaterialOutflow::REASONS))],
             'destination'       => 'nullable|string|max:150',
             'document_number'   => 'nullable|string|max:50',
@@ -43,7 +43,7 @@ class OutflowController extends Controller
             'reason.required_if' => 'Nurašymui privaloma nurodyti priežastį.',
         ]);
 
-        if ($data['outflow_type'] === 'transfer') {
+        if ($data['outflow_type'] !== 'writeoff') {
             $data['reason'] = null;
         }
 

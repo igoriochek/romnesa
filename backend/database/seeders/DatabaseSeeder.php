@@ -22,12 +22,15 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Admin jau sukuriamas migracijoje (add_username_to_users) - čia tik jei jo nėra
-        User::firstOrCreate(['username' => 'Admin'], [
+        $admin = User::firstOrCreate(['username' => 'Admin'], [
             'name' => 'Admin',
             'email' => 'admin@romnesa.lt',
             'password' => 'admin',
             'role' => 'admin',
         ]);
+        if ($admin->wasRecentlyCreated) {
+            $admin->forceFill(['must_change_password' => true])->save();
+        }
 
         // Žaliavos, receptūros, gavimai ir gamyba - iš Excel (romnesa:import-excel) žemiau
 
@@ -80,5 +83,8 @@ class DatabaseSeeder extends Seeder
         PackedProduct::where('name', 'Populiarus Palink 0,5')->update(['weight_from_kg' => 0.40, 'weight_to_kg' => 0.60]);
         PackedProduct::where('name', 'Trapus Palink 0,5')->update(['weight_from_kg' => 0.40, 'weight_to_kg' => 0.60]);
         PackedProduct::where('name', 'Bočių')->update(['weight_from_kg' => 1.50, 'weight_to_kg' => 3.00]);
+
+        // Pakavimo medžiagos, papildomos fasavimo rūšys ir pakavimo specifikacijos
+        \App\Support\PackagingDefaults::seed();
     }
 }

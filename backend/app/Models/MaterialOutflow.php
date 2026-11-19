@@ -9,6 +9,13 @@ class MaterialOutflow extends Model
 {
     use Auditable;
 
+    /** Išėjimo tipai: perdavimas kitam cechui, perdavimas virtuvei, nurašymas. */
+    public const TYPES = [
+        'writeoff' => 'Nurašymas',
+        'transfer' => 'Perdavimas kitam cechui',
+        'kitchen'  => 'Perdavimas virtuvei',
+    ];
+
     /** Nurašymo priežasčių kodai (privaloma nurašymui). */
     public const REASONS = [
         'expired'   => 'Pasibaigęs galiojimas',

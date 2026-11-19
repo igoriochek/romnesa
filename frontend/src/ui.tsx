@@ -28,6 +28,15 @@ const ICONS = {
   key: 'M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4',
   logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
   tag: 'M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8ZM7 7h.01',
+  grip: 'M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01',
+  edit: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z',
+  copy: 'M20 9h-9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2ZM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1',
+  x: 'M18 6 6 18M6 6l12 12',
+  check: 'M20 6 9 17l-5-5',
+  swap: 'M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16',
+  chef: 'M6 13.9A4 4 0 0 1 7 6a5 5 0 0 1 10 0 4 4 0 0 1 1 7.9V21H6ZM6 17h12',
+  layers: 'M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5',
+  up: 'm18 15-6-6-6 6',
 } as const
 export type IconName = keyof typeof ICONS
 
@@ -200,6 +209,10 @@ export const smallBtnCls = 'rounded px-2 py-0.5 text-xs text-stone-600 hover:bg-
 export const linkBtnCls = 'rounded px-1.5 py-0.5 text-sm text-stone-700 hover:bg-stone-100'
 export const outlineBtnCls = 'rounded-md border border-amber-800 px-3 py-0.5 text-sm font-medium text-amber-900 hover:bg-amber-50'
 
+/** Žalias kontūrinis mygtukas („+ Pridėti …“) kaip naujame dizaine. */
+export const addBtnCls =
+  'inline-flex items-center gap-1.5 rounded-lg border border-green-700 bg-white px-3 py-1.5 text-sm font-semibold text-green-800 hover:bg-green-50 disabled:opacity-50'
+
 export const btnCls =
   'rounded-lg bg-amber-800 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-900 disabled:opacity-50'
 export const greenBtnCls =
@@ -218,3 +231,7 @@ export const fmtKg = (n?: number | null) => (n == null ? '—' : num(n, 1, 3))
 export const fmtEur = (n?: number | null) => (n == null ? '—' : num(n, 2, 2))
 export const fmtUnitEur = (n?: number | null) => (n == null ? '—' : num(n, 2, 4))
 export const fmtPct = (n?: number | null) => (n == null ? '—' : num(n, 1, 1))
+// Receptūros norma kg / 1 kg produkcijos (iki 6 sk. po kablelio)
+export const fmtNorm = (n?: number | null) => (n == null ? '—' : num(n, 0, 6))
+// Valandos (iki 2 sk. po kablelio)
+export const fmtHours = (n?: number | null) => (n == null ? '—' : num(n, 0, 2))

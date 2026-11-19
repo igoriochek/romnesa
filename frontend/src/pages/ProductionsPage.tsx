@@ -1,11 +1,14 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { printElement } from '../print'
+import RecalcCard from './RecalcCard'
+import AdjustmentsCard from './AdjustmentsCard'
 import {
   createProduction, deleteRecord, getLWeeks, getProductionProducts, getProductions,
   getProduction, getProductInfo, previewProduction, toggleLock, errText, isShortage,
   type CostMaterial, type LWeek, type MaterialUsage, type Production, type ProductInfo, type ProductionPreview, type ProductionProduct,
 } from '../api'
 import {
-  Badge, Card, Err, Field, Icon, InfoRows, LWeekBadge, Table, btnCls, fmtDate, fmtEur, fmtKg, fmtPct, fmtUnitEur, inputCls,
+  Badge, Card, Err, Field, Icon, InfoRows, LWeekBadge, Table, btnCls, fmtDate, fmtEur, fmtKg, fmtNorm, fmtPct, fmtUnitEur, inputCls,
   outlineBtnCls, todayIso,
 } from '../ui'
 
@@ -132,6 +135,7 @@ function UsageBreakdown({ usages, costs }: { usages: MaterialUsage[]; costs?: Co
 }
 
 export default function ProductionsPage() {
+  const usageRef = useRef<HTMLDivElement>(null)
   const [rows, setRows] = useState<Production[]>([])
   const [products, setProducts] = useState<ProductionProduct[]>([])
   const [lweeks, setLweeks] = useState<LWeek[]>([])
@@ -302,13 +306,33 @@ export default function ProductionsPage() {
           )}
         </Card>
 
+        <AdjustmentsCard products={products} onApplied={() => { setDetail(null); return load() }} />
+        <RecalcCard products={products} onDone={() => { setDetail(null); return load() }} />
+
         {detail?.usages && (
+          <div ref={usageRef}>
           <Card title={`Sunaudota žaliavų (gamyba # ${detail.id})`} icon="leaf"
-            actions={<span className="text-sm text-stone-500">{detail.production_product?.name} · {fmtDate(detail.production_date)}</span>}>
+            actions={
+              <span className="flex items-center gap-3 text-sm text-stone-500">
+                {detail.production_product?.name} · {fmtDate(detail.production_date)}
+                <button type="button" title="Spausdinti sunaudojimą" aria-label="Spausdinti sunaudojimą"
+                  className="no-print rounded-lg border-2 border-green-700 bg-white p-1.5 text-green-800 hover:bg-green-50"
+                  onClick={() => usageRef.current && printElement(usageRef.current, `Sunaudota žaliavų – gamyba ${detail.id}`)}>
+                  <Icon name="printer" className="h-5 w-5" />
+                </button>
+              </span>
+            }>
+            {!!detail.adjustments?.length && (
+              <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                Taikytos mėnesio korekcijos (pagrindinė receptūra nepakeista):{' '}
+                {detail.adjustments.map((a) => `${a.raw_material} ${fmtNorm(a.qty_kg_per_kg)} kg/kg (receptūroje ${a.base_qty_kg_per_kg == null ? 'nėra' : fmtNorm(a.base_qty_kg_per_kg)})`).join('; ')}
+              </p>
+            )}
             {detail.usages.length
               ? <UsageBreakdown usages={detail.usages} costs={detail.cost_materials} />
               : <p className="py-4 text-center text-sm text-stone-400">Žaliavų sunaudojimas neužfiksuotas</p>}
           </Card>
+          </div>
         )}
       </div>
 
@@ -371,6 +395,11 @@ export default function ProductionsPage() {
                       <span>{row.raw_material.name}</span>
                       <span className="tabular-nums">{fmtKg(row.needed_kg)} kg</span>
                     </div>
+                    {row.adjusted && (
+                      <p className="text-xs text-amber-800" title="Pagrindinė receptūra nepakeista – taikoma tik šio laikotarpio korekcija">
+                        Mėnesio korekcija: {fmtNorm(row.qty_kg_per_kg)} kg/kg (receptūroje {row.base_qty_kg_per_kg == null ? 'nėra' : fmtNorm(row.base_qty_kg_per_kg)})
+                      </p>
+                    )}
                     {!row.raw_material.requires_batch ? (
                       <p className="text-xs text-stone-500">Išimtis – partija nereikalinga, fiksuojamas tik kiekis</p>
                     ) : (

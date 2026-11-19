@@ -43,10 +43,22 @@ class ProductionController extends Controller
 
     public function show(int $id)
     {
-        return Production::with([
+        $p = Production::with([
             'productionProduct', 'lWeek', 'recipe.items.rawMaterial',
             'usages.rawMaterial', 'usages.materialBatch',
         ])->findOrFail($id)->withCost(details: true);
+        // gamybos dieną galiojusios mėnesio korekcijos (kur norma skyrėsi nuo receptūros)
+        $p->adjustments = $p->recipe
+            ? $this->productions->effectiveItems($p->recipe, $p->production_date->toDateString())
+                ->filter(fn ($i) => $i->adjustment_id !== null)
+                ->map(fn ($i) => [
+                    'raw_material'       => $i->rawMaterial->name,
+                    'base_qty_kg_per_kg' => $i->base_qty_kg_per_kg,
+                    'qty_kg_per_kg'      => $i->qty_kg_per_kg,
+                ])->values()
+            : [];
+
+        return $p;
     }
 
     public function store(Request $request)
@@ -103,12 +115,16 @@ class ProductionController extends Controller
             ], 422);
         }
 
-        $plan = $recipe->items->map(function ($item) use ($data) {
+        $plan = $this->productions->effectiveItems($recipe, $data['production_date'])->map(function ($item) use ($data) {
             $needed = round($item->qty_kg_per_kg * $data['qty_produced_kg'], 3);
             $withBatch = $needed > 0 && $item->rawMaterial->requires_batch;
             return [
                 'raw_material' => $item->rawMaterial,
                 'needed_kg'    => $needed,
+                // mėnesio korekcija (pagrindinė receptūra nekeičiama)
+                'adjusted'           => $item->adjustment_id !== null,
+                'base_qty_kg_per_kg' => $item->base_qty_kg_per_kg,
+                'qty_kg_per_kg'      => $item->qty_kg_per_kg,
                 'take'         => $withBatch ? $this->stock->plan($item->raw_material_id, $needed, $data['production_date']) : [],
                 // visos tą dieną tinkamos partijos su likučiu - planą galima pakeisti rankiniu būdu
                 'options'      => $withBatch
@@ -153,6 +169,21 @@ class ProductionController extends Controller
             'recent'      => $product->productions()->with('lWeek')
                 ->orderByDesc('production_date')->orderByDesc('id')->limit(5)->get(),
         ];
+    }
+
+    /** Sunaudojimo perskaičiavimas (TRŪKSTA padengimas arba visas pagal receptūrą), dry_run - tik peržiūra. */
+    public function recalculate(Request $request)
+    {
+        $f = $request->validate([
+            'mode'                  => 'required|in:shortages,full',
+            'dry_run'               => 'boolean',
+            'from'                  => 'nullable|date',
+            'to'                    => 'nullable|date',
+            'production_product_id' => 'nullable|exists:production_products,id',
+            'raw_material_id'       => 'nullable|exists:raw_materials,id',
+        ]);
+
+        return $this->productions->recalculate($f, $f['mode'], $request->boolean('dry_run'));
     }
 
     /** „Įspajamojimas": užrakinta gamyba negali būti naikinama (partijos lieka užfiksuotos). */

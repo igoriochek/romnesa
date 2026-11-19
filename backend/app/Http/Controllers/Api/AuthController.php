@@ -40,7 +40,9 @@ class AuthController extends Controller
 
         $user = User::where('username', $data['username'])->first();
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
+        // tikrinama ir nesant vartotojo - kad pagal atsakymo laiką nebūtų galima atspėti vartotojų vardų
+        $hash = $user?->password ?? '$2y$12$/YEOrpmuYmG04EgF/sCL4uEixvzPOs9Wjcup3Z0Lv2weiQbtKXE0a';
+        if (! Hash::check($data['password'], $hash) || ! $user) {
             RateLimiter::hit($key, 15 * 60);
             throw ValidationException::withMessages(['username' => 'Neteisingas vartotojo vardas arba slaptažodis.']);
         }

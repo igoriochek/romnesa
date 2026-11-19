@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 import BatchesPage from './pages/BatchesPage'
 import ProductionsPage from './pages/ProductionsPage'
+import PackagingPage from './pages/PackagingPage'
 import MovementsPage from './pages/MovementsPage'
 import OutflowsPage from './pages/OutflowsPage'
 import TraceabilityPage from './pages/TraceabilityPage'
@@ -13,6 +14,7 @@ import HistoryPage from './pages/HistoryPage'
 import WarehouseStockCard from './pages/StockPage'
 import ReportsPage, { type ReportId, type ReportRequest } from './pages/ReportsPage'
 import WriteoffActsPage from './pages/WriteoffActsPage'
+import PayrollPage from './pages/PayrollPage'
 import ChangePasswordForm from './pages/ChangePasswordForm'
 import { Dropdown, type IconName } from './ui'
 
@@ -20,12 +22,14 @@ const TABS = [
   { id: 'dash', label: 'Suvestinė' },
   { id: 'batches', label: 'Partijos' },
   { id: 'production', label: 'Gamyba' },
+  { id: 'packaging', label: 'Pakavimas' },
   { id: 'movements', label: 'Judėjimai' },
   { id: 'outflows', label: 'Perdavimai' },
   { id: 'acts', label: 'Nurašymo aktai' },
   { id: 'trace', label: 'Atsekamumas' },
   { id: 'stock', label: 'Likučiai' },
   { id: 'reports', label: 'Ataskaitos' },
+  { id: 'payroll', label: 'Darbo užmokestis' },
   { id: 'history', label: 'Istorija' },
   { id: 'classifiers', label: 'Klasifikatoriai' },
 ] as const
@@ -165,6 +169,7 @@ function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => vo
         {tab === 'dash' && <Dashboard />}
         {tab === 'batches' && <BatchesPage />}
         {tab === 'production' && <ProductionsPage />}
+        {tab === 'packaging' && <PackagingPage />}
         {tab === 'movements' && <MovementsPage />}
         {tab === 'outflows' && <OutflowsPage />}
         {tab === 'acts' && <WriteoffActsPage />}
@@ -177,6 +182,7 @@ function Shell({ user, onUser, onLogout }: { user: User; onUser: (u: User) => vo
             onReady={(action, label) => setTimeout(() => (action === 'print' ? printPage() : doPdf(label)), 200)}
           />
         )}
+        {tab === 'payroll' && <PayrollPage />}
         {tab === 'history' && <HistoryPage />}
         {tab === 'classifiers' && <ClassifiersPage />}
       </main>

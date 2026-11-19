@@ -47,7 +47,7 @@ class MaterialStockService
         return [
             'used_kg'    => round($used, 3),
             'outflow_kg' => round($out, 3),
-            'balance_kg' => round((float) $batch->qty_received_kg - $used - $out, 3),
+            'balance_kg' => round((float  ) $batch->qty_received_kg - $used - $out, 3),
         ];
     }
 

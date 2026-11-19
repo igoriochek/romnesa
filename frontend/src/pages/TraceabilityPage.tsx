@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getBatches, traceBatch, traceLWeek, errText, isShortage, type MaterialBatch, type TraceBatchResult, type TraceLWeekResult } from '../api'
 import { Badge, Card, Err, Field, Table, btnCls, fmtDate, fmtKg, inputCls } from '../ui'
 
-const MOVEMENT_TYPES: Record<string, string> = { pack_in: "Fasavimas", move: "Perkėlimas", ship_out: "Išvežimas" }
+const MOVEMENT_TYPES: Record<string, string> = { pack_in: "Fasavimas", move: "Perkėlimas", ship_out: "Išvežimas", repack: "Perpakavimas" }
 
 export default function TraceabilityPage() {
   const [mode, setMode] = useState<'lweek' | 'batch'>('lweek')
@@ -69,6 +69,8 @@ export default function TraceabilityPage() {
               cols={[
                 { header: 'Žaliava', render: (u) => u.raw_material?.name },
                 { header: 'Partija', render: (u) => u.material_batch?.batch_number ?? (isShortage(u) ? <Badge tone="red">TRŪKSTA</Badge> : <Badge>be partijos</Badge>) },
+                { header: 'Tiekėjas', render: (u) => u.material_batch?.supplier ?? '—' },
+                { header: 'Sąskaitos Nr.', render: (u) => u.material_batch?.invoice_number ?? '—' },
                 { header: 'Kg', align: 'right', render: (u) => fmtKg(u.qty_kg) },
                 { header: 'Gamyba', render: (u) => `#${u.production_id}` },
               ]}

@@ -17,6 +17,12 @@ class PackedProduct extends Model
         return $this->belongsTo(ProductionProduct::class);
     }
 
+    /** Pakavimo specifikacija (medžiagos 1 vnt.). */
+    public function specs()
+    {
+        return $this->hasMany(PackingSpec::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function movements()
     {
         return $this->hasMany(ProductMovement::class);

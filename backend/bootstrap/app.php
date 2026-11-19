@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias(['password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class]);
+        // neprisijungus: API - JSON 401, kiti puslapiai - į SPA pradžią (vietoj neegzistuojančio „login“ maršruto -> 500)
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

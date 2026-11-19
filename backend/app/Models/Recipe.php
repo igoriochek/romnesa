@@ -15,7 +15,12 @@ class Recipe extends Model
 
     public function items()
     {
-        return $this->hasMany(RecipeItem::class);
+        return $this->hasMany(RecipeItem::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function productions()
+    {
+        return $this->hasMany(Production::class);
     }
 
     public function approvedBy()

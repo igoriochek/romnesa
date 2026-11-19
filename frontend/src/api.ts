@@ -154,6 +154,7 @@ export interface Recipe {
   change_reason: string | null
   production_product?: ProductionProduct
   items?: RecipeItem[]
+  productions_count?: number
 }
 
 export interface RecipeItem {
@@ -210,6 +211,8 @@ export interface Production {
   production_product?: ProductionProduct
   l_week?: LWeek
   usages?: MaterialUsage[]
+  // tik detalėje: gamybos dieną galiojusios mėnesio korekcijos
+  adjustments?: { raw_material: string; base_qty_kg_per_kg: number | null; qty_kg_per_kg: number }[]
 }
 
 export interface CostMaterial {
@@ -247,7 +250,7 @@ export interface MaterialOutflow {
   outflow_date: string
   material_batch_id: number
   qty_kg: number
-  outflow_type: 'transfer' | 'writeoff'
+  outflow_type: 'transfer' | 'writeoff' | 'kitchen'
   reason: WriteoffReason | null
   writeoff_act_id: number | null
   destination: string | null
@@ -290,7 +293,7 @@ export const createWriteoffAct = (data: object) => api.post<WriteoffAct>('/write
 export interface ProductMovement {
   id: number
   movement_date: string
-  movement_type: 'pack_in' | 'move' | 'ship_out'
+  movement_type: 'pack_in' | 'move' | 'ship_out' | 'repack'
   l_week_id: number
   packed_product_id: number
   qty_units: number
@@ -311,7 +314,6 @@ export interface ProductMovement {
 export interface HealthResponse {
   status: string
   app: string
-  database: string
 }
 
 export interface WarehouseStockRow {
@@ -418,7 +420,7 @@ export const updateBatch = (id: number, data: object) => api.put<MaterialBatch>(
 export const getProductions = (perPage = 50) => api.get<Paginated<Production>>('/productions', { params: { per_page: perPage } })
 export const getProduction = (id: number) => api.get<Production>(`/productions/${id}`)
 export const createProduction = (data: object) => api.post<Production>('/productions', data)
-export const getOutflows = (params?: { type?: 'transfer' | 'writeoff'; unassigned?: 1 }) =>
+export const getOutflows = (params?: { type?: 'transfer' | 'writeoff' | 'kitchen'; unassigned?: 1 }) =>
   api.get<Paginated<MaterialOutflow>>('/material-outflows', { params })
 export const createOutflow = (data: object) => api.post<MaterialOutflow>('/material-outflows', data)
 
@@ -473,7 +475,7 @@ export interface ProductionPreview {
   recipe: Recipe
   recipe_cost: RecipeCost
   // options - visos tą dieną tinkamos partijos su likučiu (planą galima keisti rankiniu būdu)
-  plan: { raw_material: RawMaterial; needed_kg: number; take: PreviewTake[]; options: MaterialBatch[] }[]
+  plan: { raw_material: RawMaterial; needed_kg: number; adjusted?: boolean; base_qty_kg_per_kg?: number | null; qty_kg_per_kg?: number; take: PreviewTake[]; options: MaterialBatch[] }[]
   shortage: boolean
 }
 
@@ -499,3 +501,292 @@ export interface AuditRow {
 
 export const getHistory = (params?: { entity?: string; action?: string; page?: number }) =>
   api.get<Paginated<AuditRow>>('/history', { params })
+
+// ---- Klasifikatorių redagavimas / tvarka ----
+export const updateClassifier = (resource: string, id: number, data: object) => api.put(`/${resource}/${id}`, data)
+export const reorderClassifier = (resource: string, ids: number[]) => api.post(`/${resource}/reorder`, { ids })
+
+// ---- Receptūros ----
+export interface RecipeInput {
+  production_product_id: number
+  version?: number | null
+  valid_from: string
+  valid_to?: string | null
+  change_reason?: string | null
+  items: { raw_material_id: number; qty_kg_per_kg: number }[]
+}
+export const createRecipe = (data: RecipeInput) => api.post<Recipe>('/recipes', data)
+export const updateRecipe = (id: number, data: RecipeInput) => api.put<Recipe>(`/recipes/${id}`, data)
+
+// ---- Pakavimas ----
+export const OUTFLOW_TYPES = {
+  writeoff: 'Nurašymas',
+  transfer: 'Perdavimas kitam cechui',
+  kitchen: 'Perdavimas virtuvei',
+} as const
+export type OutflowType = keyof typeof OUTFLOW_TYPES
+
+export interface PackagingMaterial {
+  id: number
+  name: string
+  unit: string
+  kind: 'item' | 'box' | 'overlay'
+  pack_qty: number | null
+  sort_order?: number
+  is_active: boolean
+}
+
+export const MATERIAL_KINDS = { item: 'Prekinė pakuotė', box: 'Transportinė dėžė', overlay: 'Perdengimas' } as const
+
+export interface TransportNorm {
+  id: number
+  packed_product_id: number
+  shop_id: number | null
+  box_material_id: number
+  units_per_box: number | null
+  overlay_material_id: number | null
+  overlays_per_box: number
+  notes: string | null
+  sort_order?: number
+  packed_product?: PackedProduct
+  shop?: Shop | null
+  box_material?: PackagingMaterial
+  overlay_material?: PackagingMaterial | null
+}
+
+export interface PackagingBatch {
+  id: number
+  received_date: string
+  packaging_material_id: number
+  batch_number: string
+  qty_received: number
+  unit_cost_eur: number | null
+  supplier: string | null
+  invoice_number: string | null
+  notes: string | null
+  is_locked?: boolean
+  used: number
+  balance: number
+  balance_value_eur: number | null
+  packaging_material?: PackagingMaterial
+}
+
+export interface PackingSpec {
+  id: number
+  packed_product_id: number
+  packaging_material_id: number
+  qty_per_unit: number
+  packaging_material?: PackagingMaterial
+}
+
+export type PackedProductSpec = PackedProduct & { production_product?: ProductionProduct; specs: PackingSpec[] }
+
+export interface PackingUsage {
+  id: number
+  packaging_material_id: number
+  packaging_batch_id: number | null
+  qty: number
+  unit_cost_eur: number | null
+  cost_eur: number | null
+  packaging_material?: PackagingMaterial
+  packaging_batch?: PackagingBatch | null
+}
+
+export interface Packing {
+  id: number
+  packing_date: string
+  l_week_id: number
+  packed_product_id: number
+  unit_weight_kg: number
+  qty_units: number
+  qty_kg: number
+  warehouse_id: number
+  shop_id: number | null
+  boxes: number | null
+  source_packed_product_id: number | null
+  source_warehouse_id: number | null
+  notes: string | null
+  is_locked?: boolean
+  cost_eur: number
+  cost_complete: boolean
+  cost_per_unit_eur: number | null
+  l_week?: LWeek
+  packed_product?: PackedProduct & { production_product?: ProductionProduct }
+  warehouse?: Warehouse
+  shop?: Shop | null
+  source_packed_product?: PackedProduct | null
+  source_warehouse?: Warehouse | null
+  usages: PackingUsage[]
+}
+
+export interface PackagingStockRow {
+  packaging_material_id: number
+  name: string
+  unit: string
+  is_active: boolean
+  batches: number
+  received: number
+  used: number
+  balance: number
+  balance_value_eur: number | null
+  value_complete: boolean
+}
+
+export const getPackagingMaterials = () => api.get<Paginated<PackagingMaterial>>('/packaging-materials')
+export const getPackagingBatches = () => api.get<PackagingBatch[]>('/packaging-batches')
+export const createPackagingBatch = (data: object) => api.post<PackagingBatch>('/packaging-batches', data)
+export const updatePackagingBatch = (id: number, data: object) => api.put<PackagingBatch>(`/packaging-batches/${id}`, data)
+export const getPackagingStock = () => api.get<PackagingStockRow[]>('/packaging-stock')
+export const getPackingSpecs = () => api.get<PackedProductSpec[]>('/packing-specs')
+export const savePackingSpecs = (packedProductId: number, items: { packaging_material_id: number; qty_per_unit: number }[]) =>
+  api.put<PackedProductSpec>(`/packing-specs/${packedProductId}`, { items })
+export const getPackings = (params?: { from?: string; to?: string; production_product_id?: number }) =>
+  api.get<Packing[]>('/packings', { params })
+export const createPacking = (data: object) => api.post<Packing>('/packings', data)
+
+export type TransportNormInput = Omit<TransportNorm, 'id' | 'sort_order' | 'packed_product' | 'shop' | 'box_material' | 'overlay_material'>
+export const getTransportNorms = () => api.get<TransportNorm[]>('/transport-norms')
+export const createTransportNorm = (data: TransportNormInput) => api.post<TransportNorm>('/transport-norms', data)
+export const updateTransportNorm = (id: number, data: TransportNormInput) => api.put<TransportNorm>(`/transport-norms/${id}`, data)
+export const reorderTransportNorms = (ids: number[]) => api.post('/transport-norms/reorder', { ids })
+
+// ---- Sunaudojimo perskaičiavimas / partijos pašalinimas su perskirstymu ----
+export interface RecalcResult {
+  mode: 'shortages' | 'full'
+  dry_run: boolean
+  productions: number
+  no_recipe: number[]
+  before: Record<string, number>
+  after: Record<string, number>
+}
+export const recalculateProductions = (data: { mode: 'shortages' | 'full'; dry_run: boolean; from?: string; to?: string; production_product_id?: number; raw_material_id?: number }) =>
+  api.post<RecalcResult>('/productions/recalculate', data)
+export const deleteBatchReallocate = (id: number) =>
+  api.delete<{ productions: number; moved_kg: number; shortages: Record<string, number> }>(`/material-batches/${id}`, { params: { reallocate: 1 } })
+
+// ---- Mėnesio sunaudojimo korekcijos („individuali kortelė“) ----
+export interface RecipeAdjustment {
+  id: number
+  production_product_id: number
+  raw_material_id: number
+  valid_from: string
+  valid_to: string
+  qty_kg_per_kg: number
+  base_qty_kg_per_kg: number | null
+  reason: string | null
+  is_locked: boolean
+  production_product?: ProductionProduct
+  raw_material?: RawMaterial
+}
+export type RecipeAdjustmentInput = Pick<RecipeAdjustment, 'production_product_id' | 'raw_material_id' | 'valid_from' | 'valid_to' | 'qty_kg_per_kg' | 'reason'>
+export interface AdjustmentContext {
+  productions: number
+  locked: number
+  produced_kg: number
+  base_qty_kg_per_kg: number | null
+  recipe_version: number | null
+  used_kg: number
+  shortage_kg: number
+}
+export const getRecipeAdjustments = (params?: { from?: string; to?: string; production_product_id?: number }) =>
+  api.get<RecipeAdjustment[]>('/recipe-adjustments', { params })
+export const getAdjustmentContext = (params: { production_product_id: number; raw_material_id: number; from: string; to: string }) =>
+  api.get<AdjustmentContext>('/recipe-adjustments/context', { params })
+export const createRecipeAdjustment = (data: RecipeAdjustmentInput) => api.post<RecipeAdjustment>('/recipe-adjustments', data)
+export const updateRecipeAdjustment = (id: number, data: RecipeAdjustmentInput) => api.put<RecipeAdjustment>(`/recipe-adjustments/${id}`, data)
+export const lockRecipeAdjustment = (id: number) => api.post<RecipeAdjustment>(`/recipe-adjustments/${id}/lock`)
+export const deleteRecipeAdjustment = (id: number) => api.delete(`/recipe-adjustments/${id}`)
+
+// ---- Darbo užmokestis (DU) ----
+export type Workshop = 'sakociai' | 'kulinarija'
+export type WorkStage = 'eggs' | 'mixing' | 'baking' | 'packing' | 'barcoding' | 'other'
+export interface Worker { id: number; name: string; position: string | null; workshop: Workshop; is_active: boolean }
+export interface WorkOperation {
+  id: number
+  workshop: Workshop
+  stage: WorkStage
+  name: string
+  pay_basis: 'hours' | 'qty'
+  unit: 'val' | 'vnt' | 'kg' | 'm' | 't'
+  norm_kg: number | null
+  is_active: boolean
+}
+export interface WorkRate {
+  id: number
+  work_operation_id: number
+  worker_id: number | null
+  rate: number
+  rate_2nd: number | null
+  valid_from: string
+  valid_to: string | null
+  notes: string | null
+  operation?: WorkOperation
+  worker?: Worker | null
+}
+export interface WorkEntryDetails {
+  buckets_full?: number
+  partial_kg?: number
+  eggs_count?: number
+  mass_kg?: number
+  egg_avg_g?: number
+  mixes?: number
+  kg_per_mix?: number
+  start?: string
+  end?: string
+  break_min?: number
+  units?: number
+  document?: string
+  destination?: string
+  defect_kg?: number
+  rate_2nd_applied?: number
+}
+export interface WorkEntry {
+  id: number
+  work_date: string
+  worker_id: number
+  work_operation_id: number
+  production_product_id: number | null
+  l_week_id: number | null
+  shift: string | null
+  qty: number | null
+  hours: number | null
+  details: WorkEntryDetails | null
+  rate_applied: number | null
+  amount: number | null
+  is_locked: boolean
+  notes: string | null
+  warnings: string[]
+  worker?: Worker
+  operation?: WorkOperation
+  production_product?: ProductionProduct | null
+  l_week?: LWeek | null
+}
+export interface WorkSummaryRow {
+  worker: { id: number; name: string; position: string | null; workshop: Workshop }
+  hours: number
+  amount: number
+  entries: number
+  unapproved: number
+  warnings: number
+  operations: { name: string; unit: string; basis: 'hours' | 'qty'; qty: number; hours: number; amount: number }[]
+}
+export const getWorkers = () => api.get<Worker[]>('/workers')
+export const saveWorker = (data: Omit<Worker, 'id'>, id?: number) => (id ? api.put<Worker>(`/workers/${id}`, data) : api.post<Worker>('/workers', data))
+export const deleteWorker = (id: number) => api.delete(`/workers/${id}`)
+export const getWorkOperations = () => api.get<WorkOperation[]>('/work-operations')
+export const saveWorkOperation = (data: Omit<WorkOperation, 'id'>, id?: number) =>
+  (id ? api.put<WorkOperation>(`/work-operations/${id}`, data) : api.post<WorkOperation>('/work-operations', data))
+export const deleteWorkOperation = (id: number) => api.delete(`/work-operations/${id}`)
+export const getWorkRates = () => api.get<WorkRate[]>('/work-rates')
+export const saveWorkRate = (data: Omit<WorkRate, 'id' | 'operation' | 'worker'>, id?: number) =>
+  (id ? api.put<WorkRate>(`/work-rates/${id}`, data) : api.post<WorkRate>('/work-rates', data))
+export const deleteWorkRate = (id: number) => api.delete(`/work-rates/${id}`)
+export const getWorkEntries = (params: { from?: string; to?: string; worker_id?: number; workshop?: Workshop }) =>
+  api.get<WorkEntry[]>('/work-entries', { params })
+export const saveWorkEntry = (data: object, id?: number) => (id ? api.put<WorkEntry>(`/work-entries/${id}`, data) : api.post<WorkEntry>('/work-entries', data))
+export const lockWorkEntry = (id: number) => api.post<WorkEntry>(`/work-entries/${id}/lock`)
+export const deleteWorkEntry = (id: number) => api.delete(`/work-entries/${id}`)
+export const approveWorkPeriod = (data: { from: string; to: string; workshop?: Workshop }) =>
+  api.post<{ approved: number; skipped: number }>('/work-entries/approve-period', data)
+export const getWorkSummary = (params: { from: string; to: string; workshop?: Workshop }) =>
+  api.get<WorkSummaryRow[]>('/work-summary', { params })

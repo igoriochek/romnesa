@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import {
-  createBatch, deleteRecord, getBatch, getBatches, getRawMaterials, getWarehouses, toggleLock, updateBatch, errText,
-  WRITEOFF_REASONS, type MaterialBatch, type RawMaterial, type Warehouse,
+  createBatch, deleteBatchReallocate, deleteRecord, getBatch, getBatches, getRawMaterials, getWarehouses, toggleLock, updateBatch, errText,
+  OUTFLOW_TYPES, WRITEOFF_REASONS, type MaterialBatch, type RawMaterial, type Warehouse,
 } from '../api'
 import {
   Badge, Card, Err, Field, Icon, IconBtn, InfoRows, Table, fmtDate, fmtEur, fmtKg, fmtUnitEur,
@@ -69,8 +69,8 @@ function BatchUsageDetail({ batch }: { batch: MaterialBatch }) {
     })),
     ...(batch.outflows ?? []).map((o) => ({
       key: `o${o.id}`, date: o.outflow_date, qty: Number(o.qty_kg),
-      kind: o.outflow_type === 'transfer' ? 'Perdavimas' : 'Nurašymas', production: '—',
-      product: o.outflow_type === 'transfer'
+      kind: OUTFLOW_TYPES[o.outflow_type] ?? o.outflow_type, production: '—',
+      product: o.outflow_type !== 'writeoff'
         ? (o.destination ?? '—')
         : (o.reason ? WRITEOFF_REASONS[o.reason] : (o.destination ?? '—')),
       lweek: o.document_number ?? '—',
@@ -333,6 +333,25 @@ export default function BatchesPage() {
   }
 
   const doDelete = async (b: MaterialBatch) => {
+    const used = Number(b.used_kg ?? 0)
+    if (Number(b.outflow_kg ?? 0) > 0) {
+      setErr(`Iš partijos ${b.batch_number} yra perdavimų / nurašymų – pirma ištrinkite juos skiltyje „Perdavimai“.`)
+      return
+    }
+    if (used > 0) {
+      if (!window.confirm(
+        `Partija ${b.batch_number} jau panaudota gamyboje (${fmtKg(used)} kg).\n\n` +
+        'Ištrinant šis kiekis bus perkeltas į kitas tą dieną tinkamas tos pačios žaliavos partijas (FIFO). ' +
+        'Jei jų neužteks – gamybose liks „TRŪKSTA“.\n\nIštrinti ir perskirstyti?',
+      )) return
+      try {
+        const r = (await deleteBatchReallocate(b.id)).data
+        const short = Object.entries(r.shortages).map(([m, kg]) => `${m}: ${fmtKg(kg)} kg`).join(', ')
+        window.alert(`Partija ištrinta. Perskirstyta ${fmtKg(r.moved_kg)} kg (${r.productions} gamybos).` + (short ? `\nŠiose gamybose TRŪKSTA: ${short}` : ''))
+        await load()
+      } catch (e) { setErr(errText(e)) }
+      return
+    }
     if (!window.confirm(`Trinti partiją ${b.batch_number}?`)) return
     try { await deleteRecord('material-batches', b.id); await load() } catch (e) { setErr(errText(e)) }
   }
